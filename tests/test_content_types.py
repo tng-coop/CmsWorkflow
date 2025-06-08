@@ -47,7 +47,7 @@ def test_post_invalid_content_type(tmp_path):
     assert status == 200
     token = body["token"]
 
-    content = {"title": "Bad", "type": "unknown", "metadata": {}}
+    content = {"title": "Bad", "type": "unknown"}
     status, body = _request(base_url, "POST", "/content", content, token=token)
     server.shutdown()
     thread.join()
@@ -62,7 +62,7 @@ def test_type_immutable_on_update(tmp_path):
     token = body["token"]
 
     users = seed_users()
-    content = sample_content(users)
+    content = sample_content(users).to_dict()
     status, body = _request(base_url, "POST", "/content", content, token=token)
     assert status == 201
 
@@ -83,13 +83,12 @@ def test_metadata_immutable_on_update(tmp_path):
     token = body["token"]
 
     users = seed_users()
-    content = sample_content(users)
+    content = sample_content(users).to_dict()
     status, body = _request(base_url, "POST", "/content", content, token=token)
     assert status == 201
 
     updated = body.copy()
-    updated["metadata"] = updated["metadata"].copy()
-    updated["metadata"]["created_by"] = users["admin"]["uuid"]
+    updated["created_by"] = users["admin"]["uuid"]
     status, body = _request(base_url, "PUT", f"/content/{updated['uuid']}", updated, token=token)
     server.shutdown()
     thread.join()
