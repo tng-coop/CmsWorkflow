@@ -24,7 +24,7 @@ Each content item stored by the API contains:
 
 The helper `cms.data.sample_content` returns an example object with this
 structure. When creating content, the API leaves the revision references
-unset so new items begin in the ``Draft`` state. A full breakdown of all
+unset so new items begin unpublished. A full breakdown of all
 fields can be found in
 [docs/DataStructure.md](docs/DataStructure.md).
 
@@ -98,7 +98,7 @@ For a complete list of endpoints and their payloads, see [docs/API.md](docs/API.
 
 ## Using the Workflow Helpers
 
-The functions in `cms.workflow` manage draft state and approval metadata. Example usage:
+The functions in `cms.workflow` manage draft editing and approval metadata. Example usage:
 
 ```python
 from cms.data import seed_users, sample_content

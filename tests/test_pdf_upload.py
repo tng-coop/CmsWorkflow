@@ -74,7 +74,8 @@ def test_upload_pdf_content(api_server, auth_token, users):
     assert body["type"] == ContentType.PDF.value
     assert body["file"] == encoded
     assert "uuid" in body and body["uuid"]
-    assert body["state"] == "Draft"
+    assert body["is_published"] is False
+    assert body["archived"] is False
     assert body["pre_submission"] is True
     assert body.get("published_revision") is None
     assert body.get("review_revision") is None

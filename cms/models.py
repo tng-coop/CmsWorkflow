@@ -33,7 +33,7 @@ class Content:
     revisions: List[Revision] = field(default_factory=list)
     published_revision: Optional[str] = None
     review_revision: Optional[str] = None
-    state: str = "Draft"
+    archived: bool = False
     file: Optional[str] = None
     pre_submission: Optional[bool] = None
     categories: List[str] = field(default_factory=list)
