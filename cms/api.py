@@ -21,8 +21,21 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
     """
 
     store = {}
+    categories = {}
     tokens = {}
     valid_types = {ct.value for ct in ContentType}
+
+    @staticmethod
+    def _sorted_categories():
+        def sort_key(cat):
+            prio = cat.get("display_priority", 0)
+            if prio and prio > 0:
+                return (0, prio)
+            return (1, cat.get("name", "").lower())
+
+        categories = list(SimpleCRUDHandler.categories.values())
+        categories.sort(key=sort_key)
+        return categories
 
     @staticmethod
     def _ensure_revision_structure(item):
@@ -73,6 +86,18 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path == "/categories":
+            cats = self._sorted_categories()
+            self._send_json(cats)
+            return
+        if parsed.path.startswith("/categories/"):
+            cat_uuid = parsed.path.split("/")[-1]
+            cat = self.categories.get(cat_uuid)
+            if cat is None:
+                self._send_json({"error": "not found"}, status=404)
+            else:
+                self._send_json(cat)
+            return
         if parsed.path == "/content-types":
             self._send_json(sorted(self.valid_types))
             return
@@ -123,6 +148,19 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": str(exc)}, status=400)
             else:
                 self._send_json({"ok": True})
+            return
+        if parsed.path == "/categories":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            data = json.loads(body)
+            cat_uuid = data.get("uuid") or str(uuid.uuid4())
+            data["uuid"] = cat_uuid
+            self.categories[cat_uuid] = {
+                "uuid": cat_uuid,
+                "name": data.get("name", ""),
+                "display_priority": int(data.get("display_priority", 0)),
+            }
+            self._send_json(self.categories[cat_uuid], status=201)
             return
         if parsed.path.startswith("/content/") and parsed.path.endswith("/request-approval"):
             if not self._authenticate():
@@ -214,6 +252,23 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
 
     def do_PUT(self):
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/categories/"):
+            cat_uuid = parsed.path.split("/")[-1]
+            if cat_uuid not in self.categories:
+                self._send_json({"error": "not found"}, status=404)
+                return
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            incoming = json.loads(body)
+            existing = self.categories[cat_uuid]
+            updated = existing.copy()
+            updated.update({
+                "name": incoming.get("name", existing.get("name")),
+                "display_priority": int(incoming.get("display_priority", existing.get("display_priority", 0))),
+            })
+            self.categories[cat_uuid] = updated
+            self._send_json(updated)
+            return
         if parsed.path.startswith("/content/"):
             if not self._authenticate():
                 self._send_json({"error": "unauthorized"}, status=401)
@@ -270,6 +325,14 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/categories/"):
+            cat_uuid = parsed.path.split("/")[-1]
+            if cat_uuid in self.categories:
+                removed = self.categories.pop(cat_uuid)
+                self._send_json(removed)
+            else:
+                self._send_json({"error": "not found"}, status=404)
+            return
         if parsed.path.startswith("/content/"):
             if not self._authenticate():
                 self._send_json({"error": "unauthorized"}, status=401)

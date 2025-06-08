@@ -26,4 +26,5 @@ def sample_content(users):
         created_at=timestamp,
         timestamps=timestamp,
         revisions=[revision],
+        categories=[],
     )

@@ -8,6 +8,13 @@ class Revision:
     last_updated: str
     attributes: dict = field(default_factory=dict)
 
+
+@dataclass
+class Category:
+    uuid: str
+    name: str
+    display_priority: int = 0
+
 @dataclass
 class Content:
     uuid: str
@@ -29,6 +36,7 @@ class Content:
     archived: bool = False
     file: Optional[str] = None
     pre_submission: Optional[bool] = None
+    categories: List[str] = field(default_factory=list)
 
     def to_dict(self):
         data = asdict(self)

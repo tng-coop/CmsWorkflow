@@ -24,6 +24,7 @@ classDiagram
         archived: bool
         file: str
         pre_submission: bool
+        categories: List[str]
     }
     class Revision {
         uuid: str
@@ -55,6 +56,7 @@ classDiagram
 - **archived** – set to `true` if the item is no longer active.
 - **file** – base64 encoded file contents (PDF only).
 - **pre_submission** – boolean that indicates a newly created PDF has not yet been submitted for approval.
+- **categories** – list of category UUIDs the content belongs to.
 
 ```mermaid
 flowchart TD
