@@ -1,6 +1,10 @@
 # Data Structure
 
-This document describes the JSON schema used for content items stored by the CMS workflow API.
+This document describes the data model used by the CMS workflow API.  While the
+HTTP interface exchanges JSON, the implementation stores content as dataclass
+objects in a small `DbContext` container.  The following diagrams show the
+fields present on those dataclasses as well as the JSON shape returned over the
+wire.
 
 ```mermaid
 classDiagram
@@ -76,3 +80,12 @@ Category objects returned by the API contain:
 - **archived** – set to `true` when the category has been removed from active use.
 
 Categories are **flat**; the API does not currently support parent/child relationships.
+
+### Dataclass Representation
+
+For in‑process operations the code uses dataclass models from
+`cms.models`.  The `DbContext` class exposes simple dictionaries mapping
+UUIDs to instances of these dataclasses.  When the HTTP layer sends or
+receives data, the service layer converts between dataclass objects and
+plain dictionaries so that the external JSON structure matches the
+schema described above.

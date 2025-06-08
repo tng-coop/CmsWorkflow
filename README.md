@@ -41,6 +41,17 @@ All content types share the same metadata and revision structure:
 Requests that create or update content must specify one of these values for the
 `type` field.
 
+## Internal Data Model
+
+While the HTTP interface exchanges JSON, the CMS logic itself works with
+dataclass models defined in `cms.models`.  These classes mimic an
+Entity&nbsp;Framework style of programming where a lightweight
+`DbContext` holds sets of `Content`, `Revision` and `Category` objects in
+memory.  Services operate on these objects and convert them to plain
+dictionaries only when sending responses through the API.  This keeps the
+implementation structured and type‑safe without relying on JSON for
+in‑process data.
+
 ## Running the Tests
 
 Install `pytest` if it is not already available:
