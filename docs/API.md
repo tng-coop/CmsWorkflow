@@ -48,6 +48,21 @@ Validate that a content object contains the required metadata fields. Returns `{
 ### `POST /test-token`
 Return a simple authentication token for the supplied username.
 
+### `POST /categories`
+Create a category. The body accepts `name` and optional `display_priority`.
+
+### `GET /categories`
+List all categories sorted by display priority (1 is highest) then alphabetically.
+
+### `GET /categories/<uuid>`
+Retrieve a single category by UUID.
+
+### `PUT /categories/<uuid>`
+Update a category's `name` or `display_priority`.
+
+### `DELETE /categories/<uuid>`
+Remove a category from the system.
+
 ## Running the server
 
 See `README.md` for instructions on starting the test server.
