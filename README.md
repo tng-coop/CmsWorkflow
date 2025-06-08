@@ -113,3 +113,9 @@ Run the client with:
 ```bash
 python qt_client.py
 ```
+
+If PyQt5 is not installed, you can install it and launch the client in one step:
+
+```bash
+python -m pip install PyQt5 && python qt_client.py
+```
