@@ -52,7 +52,7 @@ Return a simple authentication token for the supplied username.
 Create a category. The body accepts `name` and optional `display_priority`.
 
 ### `GET /categories`
-List all categories sorted by display priority (1 is highest) then alphabetically.
+List all active categories sorted by display priority (1 is highest) then alphabetically.
 
 ### `GET /categories/<uuid>`
 Retrieve a single category by UUID.
@@ -61,7 +61,7 @@ Retrieve a single category by UUID.
 Update a category's `name` or `display_priority`.
 
 ### `DELETE /categories/<uuid>`
-Remove a category from the system.
+Archive a category without removing it from the system.
 
 ## Running the server
 

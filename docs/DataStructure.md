@@ -67,3 +67,12 @@ flowchart TD
 ```
 
 The API will automatically populate revision fields and enforce type validation as demonstrated in the tests.
+
+## Category Fields
+
+Category objects returned by the API contain:
+
+- **uuid** – unique identifier for the category.
+- **name** – display name for the category.
+- **display_priority** – integer used to order categories.
+- **archived** – set to `true` when the category has been removed from active use.
