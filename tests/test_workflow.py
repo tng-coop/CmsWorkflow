@@ -165,11 +165,13 @@ def test_crud_flow(api_server, content_html, auth_token):
     assert status == 200
     assert body["title"] == "Updated"
 
-    # DELETE
+    # ARCHIVE
     status, body = _request(api_server, "DELETE", f"/content/{updated['uuid']}", token=auth_token)
     assert status == 200
-    assert body["deleted"] == updated["uuid"]
+    assert body["archived"] is True
+    assert body["state"] == "Archived"
 
-    # Confirm deletion
-    status, _ = _request(api_server, "GET", f"/content/{updated['uuid']}", token=auth_token)
-    assert status == 404
+    # Confirm archived item is still retrievable
+    status, body = _request(api_server, "GET", f"/content/{updated['uuid']}", token=auth_token)
+    assert status == 200
+    assert body["archived"] is True

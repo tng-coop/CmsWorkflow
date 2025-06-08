@@ -31,7 +31,7 @@ Retrieve a stored content item.
 Update a content item. The `type` and entire `metadata` block are immutable via this endpoint.
 
 ### `DELETE /content/<uuid>`
-Remove a content item.
+Archive a content item. Items are not removed from the system.
 
 ### `POST /content/<uuid>/start-draft`
 Begin editing an item. The request body should contain `user_uuid` and `timestamp`. A `403` is returned if another user already has the item in draft status.

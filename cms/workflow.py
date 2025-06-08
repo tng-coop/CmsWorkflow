@@ -37,3 +37,10 @@ def start_draft(content, user, timestamp):
     content["metadata"]["edited_at"] = timestamp
     content["state"] = "Draft"
     return content
+
+
+def archive_content(content):
+    """Mark a content item as archived."""
+    content["state"] = "Archived"
+    content["archived"] = True
+    return content

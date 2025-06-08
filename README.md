@@ -72,7 +72,7 @@ The server listens for JSON requests on endpoints such as:
 - `POST /content` – create a new content item.
 - `GET /content/<uuid>` – retrieve a stored item.
 - `PUT /content/<uuid>` – update an item.
-- `DELETE /content/<uuid>` – remove an item.
+- `DELETE /content/<uuid>` – archive an item without removing it.
 - `POST /test-token` – obtain a test API token for a username.
 
 All content endpoints require an `Authorization` header of the form `Bearer <token>`.

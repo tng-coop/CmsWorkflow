@@ -5,7 +5,12 @@ from threading import Thread
 from urllib.parse import urlparse
 
 from .types import ContentType
-from .workflow import check_required_metadata, request_approval, start_draft
+from .workflow import (
+    check_required_metadata,
+    request_approval,
+    start_draft,
+    archive_content,
+)
 
 
 class SimpleCRUDHandler(BaseHTTPRequestHandler):
@@ -235,8 +240,10 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 return
             uuid = parsed.path.split("/")[-1]
             if uuid in self.store:
-                del self.store[uuid]
-                self._send_json({"deleted": uuid})
+                item = self.store[uuid]
+                archive_content(item)
+                self.store[uuid] = item
+                self._send_json(item)
             else:
                 self._send_json({"error": "not found"}, status=404)
         else:
