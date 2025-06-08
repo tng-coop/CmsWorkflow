@@ -9,8 +9,7 @@ class TestCMSWorkflow(unittest.TestCase):
         # Seed Users (Editor and Admin), using UUID for identification
         self.users = {
             "editor": {"uuid": "1111-1111-1111-1111", "role": "editor"},
-            "admin": {"uuid": "2222-2222-2222-2222", "role": "admin"},
-            "anonymous": {"uuid": None, "role": "anonymous"}  # Anonymous readers have no UUID
+            "admin": {"uuid": "2222-2222-2222-2222", "role": "admin"}
         }
 
         # Sample content data to work with, now supporting multiple types and new metadata
