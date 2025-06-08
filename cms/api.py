@@ -33,7 +33,9 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 return (0, prio)
             return (1, cat.get("name", "").lower())
 
-        categories = list(SimpleCRUDHandler.categories.values())
+        categories = [
+            c for c in SimpleCRUDHandler.categories.values() if not c.get("archived")
+        ]
         categories.sort(key=sort_key)
         return categories
 
@@ -159,6 +161,7 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 "uuid": cat_uuid,
                 "name": data.get("name", ""),
                 "display_priority": int(data.get("display_priority", 0)),
+                "archived": False,
             }
             self._send_json(self.categories[cat_uuid], status=201)
             return
@@ -327,9 +330,11 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path.startswith("/categories/"):
             cat_uuid = parsed.path.split("/")[-1]
-            if cat_uuid in self.categories:
-                removed = self.categories.pop(cat_uuid)
-                self._send_json(removed)
+            cat = self.categories.get(cat_uuid)
+            if cat is not None:
+                cat["archived"] = True
+                self.categories[cat_uuid] = cat
+                self._send_json(cat)
             else:
                 self._send_json({"error": "not found"}, status=404)
             return

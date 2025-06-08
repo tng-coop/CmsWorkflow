@@ -40,12 +40,12 @@ def test_category_crud_flow():
     assert status == 200 and body["name"] == "Updates"
 
     status, body = _request(base_url, "DELETE", f"/categories/{cat_uuid}")
-    assert status == 200
+    assert status == 200 and body["archived"] is True
 
     status, body = _request(base_url, "GET", f"/categories/{cat_uuid}")
     server.shutdown()
     thread.join()
-    assert status == 404
+    assert status == 200 and body["archived"] is True
 
 
 def test_category_sort_order():

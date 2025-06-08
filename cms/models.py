@@ -14,6 +14,7 @@ class Category:
     uuid: str
     name: str
     display_priority: int = 0
+    archived: bool = False
 
 @dataclass
 class Content:
