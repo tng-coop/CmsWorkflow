@@ -76,3 +76,5 @@ Category objects returned by the API contain:
 - **name** – display name for the category.
 - **display_priority** – integer used to order categories.
 - **archived** – set to `true` when the category has been removed from active use.
+
+Categories are **flat**; the API does not currently support parent/child relationships.

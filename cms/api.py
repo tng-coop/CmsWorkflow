@@ -41,6 +41,15 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
         return categories
 
     @staticmethod
+    def _valid_flat_category_list(categories):
+        """Return True if ``categories`` is a flat list of strings."""
+        if categories is None:
+            return True
+        if not isinstance(categories, list):
+            return False
+        return all(isinstance(cat, str) for cat in categories)
+
+    @staticmethod
     def _ensure_revision_structure(item):
         """Populate revision fields if missing."""
         if "revisions" not in item or not item["revisions"]:
@@ -261,6 +270,12 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "invalid type"}, status=400)
             return
 
+        if not self._valid_flat_category_list(item.get("categories")):
+            self._send_json(
+                {"error": "categories must be a flat list of strings"}, status=400
+            )
+            return
+
         # validate required metadata on creation
         try:
             check_required_metadata(item)
@@ -322,6 +337,12 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             new_type = incoming.get("type", existing.get("type"))
             if new_type != existing.get("type"):
                 self._send_json({"error": "type cannot be changed"}, status=400)
+                return
+
+            if not self._valid_flat_category_list(incoming.get("categories")):
+                self._send_json(
+                    {"error": "categories must be a flat list of strings"}, status=400
+                )
                 return
 
             # metadata fields are immutable via this endpoint
