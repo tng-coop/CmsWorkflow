@@ -37,9 +37,18 @@ def api_server():
     thread.join()
 
 
-def _request(base_url, method, path, data=None):
+@pytest.fixture()
+def auth_token(api_server):
+    status, body = _request(api_server, "POST", "/test-token", {"username": "tester"})
+    assert status == 200
+    return body["token"]
+
+
+def _request(base_url, method, path, data=None, token=None):
     url = base_url + path
     headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     if data is not None:
         data = json.dumps(data).encode()
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
@@ -93,29 +102,29 @@ def test_draft_locked_for_other_user(content_html, users):
     assert users["editor"]["uuid"] in str(excinfo.value)
 
 
-def test_crud_flow(api_server, content_html):
+def test_crud_flow(api_server, content_html, auth_token):
     # CREATE
-    status, body = _request(api_server, "POST", "/content", content_html)
+    status, body = _request(api_server, "POST", "/content", content_html, token=auth_token)
     assert status == 201
     assert body["uuid"] == content_html["uuid"]
 
     # READ
-    status, body = _request(api_server, "GET", f"/content/{content_html['uuid']}")
+    status, body = _request(api_server, "GET", f"/content/{content_html['uuid']}", token=auth_token)
     assert status == 200
     assert body["uuid"] == content_html["uuid"]
 
     # UPDATE
     updated = body.copy()
     updated["title"] = "Updated"
-    status, body = _request(api_server, "PUT", f"/content/{updated['uuid']}", updated)
+    status, body = _request(api_server, "PUT", f"/content/{updated['uuid']}", updated, token=auth_token)
     assert status == 200
     assert body["title"] == "Updated"
 
     # DELETE
-    status, body = _request(api_server, "DELETE", f"/content/{updated['uuid']}")
+    status, body = _request(api_server, "DELETE", f"/content/{updated['uuid']}", token=auth_token)
     assert status == 200
     assert body["deleted"] == updated["uuid"]
 
     # Confirm deletion
-    status, _ = _request(api_server, "GET", f"/content/{updated['uuid']}")
+    status, _ = _request(api_server, "GET", f"/content/{updated['uuid']}", token=auth_token)
     assert status == 404
