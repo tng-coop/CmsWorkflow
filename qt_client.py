@@ -1,5 +1,6 @@
 import sys
 import json
+import logging
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -80,6 +81,10 @@ class CmsWindow(QMainWindow):
 
 
 def main():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s %(levelname)s:%(name)s:%(message)s",
+    )
     server, _ = start_test_server(0)
     base_url = f"http://localhost:{server.server_port}"
     api = ApiClient(base_url)
