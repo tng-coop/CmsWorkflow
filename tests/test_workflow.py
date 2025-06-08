@@ -89,6 +89,21 @@ def test_check_required_metadata_success(api_server, content_html, auth_token):
     assert body == {"ok": True}
 
 
+def test_content_created_without_state_starts_in_draft(api_server, users, auth_token):
+    content = sample_content(users)
+    content.pop("state", None)
+    status, body = _request(api_server, "POST", "/content", content, token=auth_token)
+    assert status == 201
+    assert body["state"] == "Draft"
+
+
+def test_content_state_overridden_to_draft(api_server, content_html, auth_token):
+    content_html["state"] = "Published"
+    status, body = _request(api_server, "POST", "/content", content_html, token=auth_token)
+    assert status == 201
+    assert body["state"] == "Draft"
+
+
 def test_export_json_missing_metadata(api_server, users, auth_token):
     invalid_content = {
         "uuid": "12350",

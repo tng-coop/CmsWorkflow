@@ -22,7 +22,7 @@ Authorization: Bearer <token>
 Returns a list of supported content types.
 
 ### `POST /content`
-Create a new content item. The body must include a `type` field with one of the supported values and `metadata` containing at least `created_by`, `created_at` and `timestamps`.
+Create a new content item. The body must include a `type` field with one of the supported values and `metadata` containing at least `created_by`, `created_at` and `timestamps`. Regardless of any provided value, newly created items are stored in the `Draft` state.
 
 ### `GET /content/<uuid>`
 Retrieve a stored content item.
