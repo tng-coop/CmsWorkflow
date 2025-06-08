@@ -1,4 +1,6 @@
 from .types import ContentType
+import uuid
+
 from .models import (
     HTMLContent,
     PDFContent,
@@ -9,24 +11,24 @@ from .models import (
 
 
 def seed_users():
-    """Return a dictionary of example users."""
+    """Return a dictionary of example users with generated UUIDs."""
     return {
-        "editor": {"uuid": "1111-1111-1111-1111", "role": "editor"},
-        "admin": {"uuid": "2222-2222-2222-2222", "role": "admin"},
+        "editor": {"uuid": str(uuid.uuid4()), "role": "editor"},
+        "admin": {"uuid": str(uuid.uuid4()), "role": "admin"},
     }
 
 
 def sample_content(users):
     """Create example HTML content using the provided users."""
     timestamp = "2025-06-08T12:00:00"
-    revision_uuid = "rev-12345"
+    revision_uuid = str(uuid.uuid4())
     revision = Revision(
         uuid=revision_uuid,
         last_updated=timestamp,
         attributes={"title": "Sample HTML Content"},
     )
     return HTMLContent(
-        uuid="12345",
+        uuid=str(uuid.uuid4()),
         title="Sample HTML Content",
         created_by=users["editor"]["uuid"],
         created_at=timestamp,
@@ -41,15 +43,15 @@ def seed_example_contents(users):
     timestamp = "2025-06-08T12:00:00"
     contents = []
     for ct in ContentType:
-        for i in range(2):
+        for _ in range(2):
             rev = Revision(
-                uuid=f"{ct.value}-{i}-rev",
+                uuid=str(uuid.uuid4()),
                 last_updated=timestamp,
-                attributes={"title": f"Example {ct.value} {i}"},
+                attributes={"title": f"Example {ct.value}"},
             )
             base_kwargs = dict(
-                uuid=f"{ct.value}-{i}",
-                title=f"Example {ct.value} {i}",
+                uuid=str(uuid.uuid4()),
+                title=f"Example {ct.value}",
                 created_by=users["editor"]["uuid"],
                 created_at=timestamp,
                 timestamps=timestamp,
