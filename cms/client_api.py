@@ -12,6 +12,7 @@ class ApiClient:
     def __init__(self, base_url: str, token: Optional[str] = None):
         self.base_url = base_url.rstrip("/")
         self.token: Optional[str] = token
+        self.username: Optional[str] = None
 
     def _make_request(self, method: str, path: str, data=None, token: Optional[str] = None):
         url = self.base_url + path
@@ -58,7 +59,13 @@ class ApiClient:
     def create_token(self, username: str) -> str:
         resp = self.post("/test-token", {"username": username})
         self.token = resp["token"]
+        self.username = username
         return self.token
+
+    def logout(self):
+        """Clear the current authentication token."""
+        self.token = None
+        self.username = None
 
     def get_content_types(self):
         return self.get("/content-types")
