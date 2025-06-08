@@ -53,11 +53,15 @@ def test_revision_history(api_server, users, auth_token):
     status, body = _request(api_server, "POST", "/content", content, token=auth_token)
     assert status == 201
     assert len(body["revisions"]) == 1
+    assert body.get("review_revision") is None
+    assert body.get("published_revision") is None
 
     for i in range(3):
         updated = body.copy()
         updated["title"] = f"Update {i}"
         status, body = _request(api_server, "PUT", f"/content/{updated['uuid']}", updated, token=auth_token)
         assert status == 200
+
+    assert body["review_revision"] == body["revisions"][-1]["uuid"]
 
     assert len(body["revisions"]) == 4

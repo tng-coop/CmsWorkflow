@@ -19,7 +19,7 @@ classDiagram
         timestamps: str
         revisions: Revision[]
         published_revision: str
-        draft_revision: str
+        review_revision: str
         state: str
         archived: bool
         file: str
@@ -48,8 +48,9 @@ classDiagram
 - **approved_at** – timestamp of approval.
 - **timestamps** – original creation timestamp (required).
 - **revisions** – list of revision objects. Every revision entry contains a `uuid`, a `last_updated` timestamp, and a dictionary of type-specific `attributes` representing the content at that revision.
-- **published_revision** – UUID of the currently published revision.
-- **draft_revision** – UUID of the most recent draft revision.
+ - **published_revision** – UUID of the currently published revision.
+ - **review_revision** – UUID of the most recent review revision. Both fields
+   are ``null`` when content is first created.
 - **state** – workflow state such as `Draft` or `AwaitingApproval`. Newly created items always start in the `Draft` state.
 - **archived** – set to `true` if the item is no longer active.
 - **file** – base64 encoded file contents (PDF only).

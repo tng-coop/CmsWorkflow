@@ -76,3 +76,5 @@ def test_upload_pdf_content(api_server, auth_token, users):
     assert "uuid" in body and body["uuid"]
     assert body["state"] == "Draft"
     assert body["pre_submission"] is True
+    assert body.get("published_revision") is None
+    assert body.get("review_revision") is None

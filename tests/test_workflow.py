@@ -95,6 +95,8 @@ def test_content_created_without_state_starts_in_draft(api_server, users, auth_t
     status, body = _request(api_server, "POST", "/content", content, token=auth_token)
     assert status == 201
     assert body["state"] == "Draft"
+    assert body.get("published_revision") is None
+    assert body.get("review_revision") is None
 
 
 def test_content_state_overridden_to_draft(api_server, content_html, auth_token):
@@ -102,6 +104,8 @@ def test_content_state_overridden_to_draft(api_server, content_html, auth_token)
     status, body = _request(api_server, "POST", "/content", content_html, token=auth_token)
     assert status == 201
     assert body["state"] == "Draft"
+    assert body.get("published_revision") is None
+    assert body.get("review_revision") is None
 
 
 def test_export_json_missing_metadata(api_server, users, auth_token):

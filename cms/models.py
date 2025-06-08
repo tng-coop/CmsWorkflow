@@ -24,7 +24,7 @@ class Content:
     timestamps: str = ""
     revisions: List[Revision] = field(default_factory=list)
     published_revision: Optional[str] = None
-    draft_revision: Optional[str] = None
+    review_revision: Optional[str] = None
     state: str = "Draft"
     archived: bool = False
     file: Optional[str] = None
