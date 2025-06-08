@@ -1,6 +1,9 @@
 import json
+import logging
 from typing import Optional
-from urllib import request, parse
+from urllib import request, parse, error
+
+logger = logging.getLogger(__name__)
 
 
 class ApiClient:
@@ -20,9 +23,24 @@ class ApiClient:
         if data is not None:
             body = json.dumps(data).encode()
             headers["Content-Type"] = "application/json"
+
+        logger.debug("HTTP %s %s", method, url)
+        if headers:
+            logger.debug("Request headers: %s", headers)
+        if body is not None:
+            logger.debug("Request body: %s", body.decode())
+
         req = request.Request(url, data=body, headers=headers, method=method)
-        with request.urlopen(req) as resp:
-            return json.loads(resp.read().decode())
+        try:
+            with request.urlopen(req) as resp:
+                resp_body = resp.read().decode()
+                logger.debug("Response status: %s", resp.status)
+                logger.debug("Response body: %s", resp_body)
+                return json.loads(resp_body)
+        except error.HTTPError as exc:
+            err_body = exc.read().decode()
+            logger.debug("HTTPError %s: %s", exc.code, err_body)
+            raise
 
     def get(self, path: str, token: Optional[str] = None):
         return self._make_request("GET", path, token=token)
