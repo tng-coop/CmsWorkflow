@@ -19,11 +19,13 @@ Each content item stored by the API contains:
    - a `uuid` identifying that revision,
    - a `last_updated` timestamp,
    - and a dictionary of type-specific `attributes`.
-4. References to the `published_revision` and `draft_revision` by UUID.
+4. References to the `published_revision` and `review_revision` by UUID. These
+   fields are ``null`` when content is first created.
 
 The helper `cms.data.sample_content` returns an example object with this
-structure and the API will populate missing revision fields when new content is
-created. A full breakdown of all fields can be found in
+structure. When creating content, the API leaves the revision references
+unset so new items begin in the ``Draft`` state. A full breakdown of all
+fields can be found in
 [docs/DataStructure.md](docs/DataStructure.md).
 
 ## Supported Content Types

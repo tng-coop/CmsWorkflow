@@ -31,15 +31,11 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             rev_uuid = str(uuid.uuid4())
             ts = item.get("timestamps") or item.get("metadata", {}).get("timestamps")
             item["revisions"] = [{"uuid": rev_uuid, "last_updated": ts}]
-            item.setdefault("published_revision", rev_uuid)
-            item.setdefault("draft_revision", rev_uuid)
         else:
             for rev in item["revisions"]:
                 rev.setdefault(
                     "last_updated", item.get("timestamps") or item.get("metadata", {}).get("timestamps")
                 )
-            item.setdefault("published_revision", item["revisions"][0]["uuid"])
-            item.setdefault("draft_revision", item["revisions"][-1]["uuid"])
 
     @staticmethod
     def _add_revision(item):
@@ -58,7 +54,7 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             attrs["file"] = item["file"]
         item.setdefault("revisions", [])
         item["revisions"].append({"uuid": rev_uuid, "last_updated": ts, "attributes": attrs})
-        item["draft_revision"] = rev_uuid
+        item["review_revision"] = rev_uuid
 
     def _authenticate(self):
         auth = self.headers.get("Authorization", "")

@@ -26,6 +26,4 @@ def sample_content(users):
         created_at=timestamp,
         timestamps=timestamp,
         revisions=[revision],
-        published_revision=revision_uuid,
-        draft_revision=revision_uuid,
     )
