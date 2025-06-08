@@ -9,6 +9,18 @@ This repository contains a minimal content management workflow implemented in Py
 
 The code only relies on the Python standard library and `pytest` for tests.
 
+## Supported Content Types
+
+The API works with four distinct content types defined in `cms.types.ContentType`:
+
+1. `html`
+2. `pdf`
+3. `office address`
+4. `event schedule`
+
+Requests that create or update content must specify one of these values for the
+`type` field.
+
 ## Running the Tests
 
 Install `pytest` if it is not already available:

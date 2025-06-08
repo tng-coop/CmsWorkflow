@@ -4,10 +4,19 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
 from urllib.parse import urlparse
 
+from .types import ContentType
+
 
 class SimpleCRUDHandler(BaseHTTPRequestHandler):
+    """Serve a very small CRUD API for content items.
+
+    The handler validates that the ``type`` field of incoming data matches one
+    of the values defined in :class:`cms.types.ContentType`.
+    """
+
     store = {}
     tokens = {}
+    valid_types = {ct.value for ct in ContentType}
 
     def _authenticate(self):
         auth = self.headers.get("Authorization", "")
@@ -61,6 +70,10 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(length)
         item = json.loads(body)
+        item_type = item.get("type")
+        if item_type not in self.valid_types:
+            self._send_json({"error": "invalid type"}, status=400)
+            return
 
         item_uuid = item.get("uuid")
         if not item_uuid:
@@ -88,6 +101,10 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length)
             item = json.loads(body)
+            item_type = item.get("type")
+            if item_type not in self.valid_types:
+                self._send_json({"error": "invalid type"}, status=400)
+                return
             self.store[uuid] = item
             self._send_json(item)
         else:

@@ -3,10 +3,47 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+import json
+import urllib.error
+import urllib.request
+
+import pytest
+
 from cms.types import ContentType
+from cms.api import start_test_server
+
+
+def _request(base_url, method, path, data=None, token=None):
+    url = base_url + path
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    if data is not None:
+        data = json.dumps(data).encode()
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return resp.status, json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return e.code, json.loads(e.read().decode())
 
 
 def test_supported_content_types():
-    expected = {"html", "pdf", "office address", "event schedilw"}
+    expected = {"html", "pdf", "office address", "event schedule"}
     assert len(ContentType) == 4
     assert {item.value for item in ContentType} == expected
+
+
+def test_post_invalid_content_type(tmp_path):
+    server, thread = start_test_server()
+    base_url = f"http://localhost:{server.server_port}"
+    status, body = _request(base_url, "POST", "/test-token", {"username": "t"})
+    assert status == 200
+    token = body["token"]
+
+    content = {"title": "Bad", "type": "unknown", "metadata": {}}
+    status, body = _request(base_url, "POST", "/content", content, token=token)
+    server.shutdown()
+    thread.join()
+    assert status == 400
+    assert body["error"] == "invalid type"
