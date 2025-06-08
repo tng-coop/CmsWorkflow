@@ -16,6 +16,7 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
     """
 
     store = {}
+    metadata_store = {}
     tokens = {}
     valid_types = {ct.value for ct in ContentType}
 
@@ -44,7 +45,8 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "unauthorized"}, status=401)
                 return
             pending = [
-                item for item in self.store.values()
+                dict(item, metadata=self.metadata_store.get(uid, {}))
+                for uid, item in self.store.items()
                 if item.get("state") == "AwaitingApproval"
             ]
             self._send_json(pending)
@@ -58,6 +60,9 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             if item is None:
                 self._send_json({"error": "not found"}, status=404)
             else:
+                metadata = self.metadata_store.get(uuid, {})
+                item = dict(item)
+                item["metadata"] = metadata
                 self._send_json(item)
         else:
             self._send_json({"error": "not found"}, status=404)
@@ -105,9 +110,11 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             if not timestamp or not user_uuid:
                 self._send_json({"error": "invalid data"}, status=400)
                 return
-            request_approval(item, {"uuid": user_uuid}, timestamp)
-            self.store[uuid_part] = item
-            self._send_json(item)
+            full_item = dict(item, metadata=self.metadata_store.get(uuid_part, {}))
+            request_approval(full_item, {"uuid": user_uuid}, timestamp)
+            self.store[uuid_part] = {k: v for k, v in full_item.items() if k != "metadata"}
+            self.metadata_store[uuid_part] = full_item["metadata"]
+            self._send_json(full_item)
             return
         if parsed.path.startswith("/content/") and parsed.path.endswith("/start-draft"):
             if not self._authenticate():
@@ -127,13 +134,15 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             if not timestamp or not user_uuid:
                 self._send_json({"error": "invalid data"}, status=400)
                 return
+            full_item = dict(item, metadata=self.metadata_store.get(uuid_part, {}))
             try:
-                start_draft(item, {"uuid": user_uuid}, timestamp)
+                start_draft(full_item, {"uuid": user_uuid}, timestamp)
             except PermissionError as exc:
                 self._send_json({"error": str(exc)}, status=403)
                 return
-            self.store[uuid_part] = item
-            self._send_json(item)
+            self.store[uuid_part] = {k: v for k, v in full_item.items() if k != "metadata"}
+            self.metadata_store[uuid_part] = full_item["metadata"]
+            self._send_json(full_item)
             return
         if parsed.path != "/content":
             self._send_json({"error": "not found"}, status=404)
@@ -159,8 +168,12 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             item["state"] = "Draft"
             item["pre_submission"] = True
 
-        self.store[item_uuid] = item
-        self._send_json(item, status=201)
+        metadata = item.get("metadata", {})
+        item_no_meta = {k: v for k, v in item.items() if k != "metadata"}
+        self.store[item_uuid] = item_no_meta
+        self.metadata_store[item_uuid] = metadata
+        response = dict(item_no_meta, metadata=metadata)
+        self._send_json(response, status=201)
 
     def do_PUT(self):
         parsed = urlparse(self.path)
@@ -175,12 +188,17 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length)
             item = json.loads(body)
-            item_type = item.get("type")
-            if item_type not in self.valid_types:
-                self._send_json({"error": "invalid type"}, status=400)
+            existing = self.store[uuid]
+            if item.get("type") != existing.get("type"):
+                self._send_json({"error": "type cannot be modified"}, status=400)
                 return
-            self.store[uuid] = item
-            self._send_json(item)
+            # Ignore any incoming metadata changes
+            updated = {k: v for k, v in item.items() if k != "metadata"}
+            metadata = self.metadata_store.get(uuid, {})
+            self.store[uuid] = updated
+            self.metadata_store[uuid] = metadata
+            response = dict(updated, metadata=metadata)
+            self._send_json(response)
         else:
             self._send_json({"error": "not found"}, status=404)
 
@@ -193,6 +211,7 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             uuid = parsed.path.split("/")[-1]
             if uuid in self.store:
                 del self.store[uuid]
+                self.metadata_store.pop(uuid, None)
                 self._send_json({"deleted": uuid})
             else:
                 self._send_json({"error": "not found"}, status=404)

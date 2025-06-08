@@ -10,6 +10,7 @@ import urllib.request
 import pytest
 
 from cms.api import start_test_server
+from cms.data import seed_users, sample_content
 
 
 def _request(base_url, method, path, data=None, token=None):
@@ -51,3 +52,23 @@ def test_post_invalid_content_type(tmp_path):
     thread.join()
     assert status == 400
     assert body["error"] == "invalid type"
+
+
+def test_cannot_modify_content_type():
+    server, thread = start_test_server()
+    base_url = f"http://localhost:{server.server_port}"
+    users = seed_users()
+    content = sample_content(users)
+    status, body = _request(base_url, "POST", "/test-token", {"username": "t"})
+    assert status == 200
+    token = body["token"]
+
+    status, body = _request(base_url, "POST", "/content", content, token=token)
+    assert status == 201
+
+    content["type"] = "pdf"
+    status, body = _request(base_url, "PUT", f"/content/{content['uuid']}", content, token=token)
+    server.shutdown()
+    thread.join()
+    assert status == 400
+    assert body["error"] == "type cannot be modified"
