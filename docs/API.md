@@ -27,6 +27,9 @@ Create a new content item. The body must include a `type` field with one of the 
 ### `GET /content/<uuid>`
 Retrieve a stored content item.
 
+### `GET /content`
+List all published content items. This endpoint does not require authentication.
+
 ### `PUT /content/<uuid>`
 Update a content item. The `type` and all metadata fields are immutable via this endpoint.
 
@@ -38,6 +41,9 @@ Begin editing an item. The request body should contain `user_uuid` and `timestam
 
 ### `POST /content/<uuid>/request-approval`
 Mark an item as awaiting administrator approval. Requires `user_uuid` and `timestamp` in the body.
+
+### `POST /content/<uuid>/approve`
+Publish a piece of content. Requires `user_uuid` and `timestamp` in the body.
 
 ### `GET /pending-approvals`
 List content items currently waiting for approval.

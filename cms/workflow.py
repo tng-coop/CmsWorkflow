@@ -91,3 +91,31 @@ def archive_content(content):
         content["state"] = "Archived"
         content["archived"] = True
     return content
+
+
+def approve_content(content, user, timestamp):
+    """Mark a content item as published/approved."""
+    if isinstance(content, Content):
+        content.approved_by = user["uuid"]
+        content.approved_at = timestamp
+        if content.review_revision is not None:
+            content.published_revision = content.review_revision
+        elif content.revisions:
+            content.published_revision = content.revisions[-1].uuid
+        content.pre_submission = False
+        content.state = "Published"
+    else:
+        if "approved_by" in content or "metadata" not in content:
+            content["approved_by"] = user["uuid"]
+            content["approved_at"] = timestamp
+        else:
+            content.setdefault("metadata", {})
+            content["metadata"]["approved_by"] = user["uuid"]
+            content["metadata"]["approved_at"] = timestamp
+        if content.get("review_revision"):
+            content["published_revision"] = content.get("review_revision")
+        elif content.get("revisions"):
+            content["published_revision"] = content["revisions"][-1]["uuid"]
+        content["pre_submission"] = False
+        content["state"] = "Published"
+    return content
