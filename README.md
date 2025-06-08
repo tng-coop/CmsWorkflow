@@ -20,7 +20,8 @@ Each content item stored by the API contains:
 
 The helper `cms.data.sample_content` returns an example object with this
 structure and the API will populate missing revision fields when new content is
-created.
+created. A full breakdown of all fields can be found in
+[docs/DataStructure.md](docs/DataStructure.md).
 
 ## Supported Content Types
 
