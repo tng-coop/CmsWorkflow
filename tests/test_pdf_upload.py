@@ -1,4 +1,4 @@
-import base64
+import uuid
 import json
 import os
 import sys
@@ -51,13 +51,12 @@ def _request(base_url, method, path, data=None, token=None):
 
 
 def test_upload_pdf_content(api_server, auth_token, users):
-    pdf_bytes = b"%PDF-1.1\n1 0 obj\n<<>>\nendobj\nstartxref\n0\n%%EOF\n"
-    encoded = base64.b64encode(pdf_bytes).decode()
+    file_id = str(uuid.uuid4())
 
     content = {
         "title": "PDF Upload",
         "type": ContentType.PDF.value,
-        "file": encoded,
+        "file": file_id,
         "created_by": users["editor"]["uuid"],
         "created_at": "2025-06-09T12:00:00",
         "edited_by": None,
@@ -72,7 +71,9 @@ def test_upload_pdf_content(api_server, auth_token, users):
     status, body = _request(api_server, "POST", "/content", content, token=auth_token)
     assert status == 201
     assert body["type"] == ContentType.PDF.value
-    assert body["file"] == encoded
+    assert "file" not in body
+    latest_rev = body["revisions"][-1]
+    assert latest_rev["attributes"]["file"] == file_id
     assert "uuid" in body and body["uuid"]
     assert body["is_published"] is False
     assert body["archived"] is False

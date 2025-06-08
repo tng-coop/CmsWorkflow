@@ -97,7 +97,12 @@ class ContentService:
         if "revisions" not in item or not item["revisions"]:
             rev_uuid = str(uuid.uuid4())
             ts = item.get("timestamps") or item.get("metadata", {}).get("timestamps")
-            item["revisions"] = [{"uuid": rev_uuid, "last_updated": ts}]
+            attrs = {}
+            if "title" in item:
+                attrs["title"] = item["title"]
+            if "file" in item:
+                attrs["file"] = item.pop("file")
+            item["revisions"] = [{"uuid": rev_uuid, "last_updated": ts, "attributes": attrs}]
         else:
             for rev in item["revisions"]:
                 rev.setdefault(
@@ -117,7 +122,7 @@ class ContentService:
         if "title" in item:
             attrs["title"] = item["title"]
         if "file" in item:
-            attrs["file"] = item["file"]
+            attrs["file"] = item.pop("file")
         item.setdefault("revisions", [])
         item["revisions"].append({"uuid": rev_uuid, "last_updated": ts, "attributes": attrs})
         item["review_revision"] = rev_uuid

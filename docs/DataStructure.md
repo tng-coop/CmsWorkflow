@@ -25,7 +25,6 @@ classDiagram
         published_revision: str
         review_revision: str
         archived: bool
-        file: str
         pre_submission: bool
         categories: List[str]
     }
@@ -55,12 +54,14 @@ classDiagram
  - **published_revision** – UUID of the currently published revision.
  - **review_revision** – UUID of the most recent review revision. Both fields
    are ``null`` when content is first created.
- - **is_published** – boolean computed by the service layer. Set to `true` when
-   ``published_revision`` is assigned.
- - **archived** – set to `true` when the content has been removed from active use.
-- **file** – base64 encoded file contents (PDF only).
+- **is_published** – boolean computed by the service layer. Set to `true` when
+  ``published_revision`` is assigned.
+- **archived** – set to `true` when the content has been removed from active use.
 - **pre_submission** – boolean that indicates a newly created PDF has not yet been submitted for approval.
 - **categories** – list of category UUIDs the content belongs to.
+
+Each revision's ``attributes`` dictionary stores type-specific fields. For PDF content
+the ``file`` attribute contains a UUID referencing the uploaded file.
 
 
 
