@@ -100,3 +100,16 @@ content = request_approval(content, users["editor"], "2025-06-09T10:15:00")
 ```
 
 See the tests in the `tests` directory for more examples.
+
+## PyQt Test Client
+
+The repository includes a small PyQt5 GUI (`qt_client.py`) that demonstrates the
+HTTP API. Running the script starts the test server, seeds it with example data
+from `cms.data`, and lets you browse content items. Each user action shows the
+underlying API request and JSON response in a log panel.
+
+Run the client with:
+
+```bash
+python qt_client.py
+```
