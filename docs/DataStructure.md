@@ -45,7 +45,7 @@ classDiagram
 - **revisions** – list of revision objects. Each revision includes a `uuid` and `last_updated` timestamp.
 - **published_revision** – UUID of the currently published revision.
 - **draft_revision** – UUID of the most recent draft revision.
-- **state** – workflow state such as `Draft` or `AwaitingApproval`.
+- **state** – workflow state such as `Draft` or `AwaitingApproval`. Newly created items always start in the `Draft` state.
 - **archived** – set to `true` if the item is no longer active.
 - **file** – base64 encoded file contents (PDF only).
 - **pre_submission** – boolean that indicates a newly created PDF has not yet been submitted for approval.

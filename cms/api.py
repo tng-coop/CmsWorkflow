@@ -180,9 +180,11 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             item_uuid = str(uuid.uuid4())
             item["uuid"] = item_uuid
 
+        # all newly created content should begin in Draft state
+        item["state"] = "Draft"
+
         # PDFs should start in Draft/pre-submission state
         if item.get("type") == "pdf":
-            item["state"] = "Draft"
             item["pre_submission"] = True
 
         self._ensure_revision_structure(item)
