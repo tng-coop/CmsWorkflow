@@ -10,6 +10,7 @@ from .workflow import (
     request_approval,
     start_draft,
     archive_content,
+    approve_content,
 )
 
 
@@ -113,6 +114,14 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             ]
             self._send_json(pending)
             return
+        if parsed.path == "/content":
+            published = [
+                item
+                for item in self.store.values()
+                if item.get("state") == "Published" and not item.get("archived")
+            ]
+            self._send_json(published)
+            return
         if parsed.path.startswith("/content/"):
             if not self._authenticate():
                 self._send_json({"error": "unauthorized"}, status=401)
@@ -185,6 +194,29 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "invalid data"}, status=400)
                 return
             request_approval(item, {"uuid": user_uuid}, timestamp)
+            self.store[uuid_part] = item
+            self._send_json(item)
+            return
+        if parsed.path.startswith("/content/") and parsed.path.endswith("/approve"):
+            if not self._authenticate():
+                self._send_json({"error": "unauthorized"}, status=401)
+                return
+            parts = parsed.path.split("/")
+            uuid_part = parts[2]
+            item = self.store.get(uuid_part)
+            if item is None:
+                self._send_json({"error": "not found"}, status=404)
+                return
+            self._ensure_revision_structure(item)
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            data = json.loads(body)
+            timestamp = data.get("timestamp")
+            user_uuid = data.get("user_uuid")
+            if not timestamp or not user_uuid:
+                self._send_json({"error": "invalid data"}, status=400)
+                return
+            approve_content(item, {"uuid": user_uuid}, timestamp)
             self.store[uuid_part] = item
             self._send_json(item)
             return
