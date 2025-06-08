@@ -19,6 +19,23 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
     tokens = {}
     valid_types = {ct.value for ct in ContentType}
 
+    @staticmethod
+    def _ensure_revision_structure(item):
+        """Populate revision fields if missing."""
+        if "revisions" not in item or not item["revisions"]:
+            rev_uuid = str(uuid.uuid4())
+            ts = item.get("metadata", {}).get("timestamps")
+            item["revisions"] = [{"uuid": rev_uuid, "last_updated": ts}]
+            item.setdefault("published_revision", rev_uuid)
+            item.setdefault("draft_revision", rev_uuid)
+        else:
+            for rev in item["revisions"]:
+                rev.setdefault(
+                    "last_updated", item.get("metadata", {}).get("timestamps")
+                )
+            item.setdefault("published_revision", item["revisions"][0]["uuid"])
+            item.setdefault("draft_revision", item["revisions"][-1]["uuid"])
+
     def _authenticate(self):
         auth = self.headers.get("Authorization", "")
         if not auth.startswith("Bearer "):
@@ -97,6 +114,7 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             if item is None:
                 self._send_json({"error": "not found"}, status=404)
                 return
+            self._ensure_revision_structure(item)
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length)
             data = json.loads(body)
@@ -119,6 +137,7 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             if item is None:
                 self._send_json({"error": "not found"}, status=404)
                 return
+            self._ensure_revision_structure(item)
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length)
             data = json.loads(body)
@@ -159,6 +178,8 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             item["state"] = "Draft"
             item["pre_submission"] = True
 
+        self._ensure_revision_structure(item)
+
         self.store[item_uuid] = item
         self._send_json(item, status=201)
 
@@ -179,6 +200,7 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             if item_type not in self.valid_types:
                 self._send_json({"error": "invalid type"}, status=400)
                 return
+            self._ensure_revision_structure(item)
             self.store[uuid] = item
             self._send_json(item)
         else:

@@ -9,6 +9,19 @@ This repository contains a minimal content management workflow implemented in Py
 
 The code only relies on the Python standard library and `pytest` for tests.
 
+## Content Structure
+
+Each content item stored by the API contains:
+
+1. A content `type` from `cms.types.ContentType`.
+2. A unique `uuid` identifying the content.
+3. A list of `revisions`, each with its own `uuid` and `last_updated` timestamp.
+4. References to the `published_revision` and `draft_revision` by UUID.
+
+The helper `cms.data.sample_content` returns an example object with this
+structure and the API will populate missing revision fields when new content is
+created.
+
 ## Supported Content Types
 
 The API works with four distinct content types defined in `cms.types.ContentType`:
