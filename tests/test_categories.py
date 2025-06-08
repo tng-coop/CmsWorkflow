@@ -3,6 +3,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
+import uuid
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -52,16 +53,19 @@ def test_category_sort_order():
     server, thread = start_test_server()
     base_url = f"http://localhost:{server.server_port}"
 
-    _request(base_url, "POST", "/categories", {"uuid": "1", "name": "Bananas"})
-    _request(base_url, "POST", "/categories", {"uuid": "2", "name": "Apples"})
-    _request(base_url, "POST", "/categories", {"uuid": "3", "name": "Zebras", "display_priority": 1})
+    uuid1 = str(uuid.uuid4())
+    uuid2 = str(uuid.uuid4())
+    uuid3 = str(uuid.uuid4())
+    _request(base_url, "POST", "/categories", {"uuid": uuid1, "name": "Bananas"})
+    _request(base_url, "POST", "/categories", {"uuid": uuid2, "name": "Apples"})
+    _request(base_url, "POST", "/categories", {"uuid": uuid3, "name": "Zebras", "display_priority": 1})
 
     status, body = _request(base_url, "GET", "/categories")
     server.shutdown()
     thread.join()
 
     uuids = [c["uuid"] for c in body]
-    assert uuids == ["3", "2", "1"]
+    assert uuids == [uuid3, uuid2, uuid1]
 
 
 def test_content_with_categories():

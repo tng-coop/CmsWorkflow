@@ -3,6 +3,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
+import uuid
 
 import pytest
 
@@ -110,7 +111,7 @@ def test_content_state_overridden_to_draft(api_server, content_html, auth_token)
 
 def test_export_json_missing_metadata(api_server, users, auth_token):
     invalid_content = {
-        "uuid": "12350",
+        "uuid": str(uuid.uuid4()),
         "title": "Missing Metadata Content",
         "type": "HTML",
         "created_by": users["editor"]["uuid"],

@@ -1,5 +1,6 @@
 import os
 import sys
+import uuid
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -119,13 +120,15 @@ def test_list_content_by_type(tmp_path):
     cat_uuid = body["uuid"]
 
     c1 = sample_content(users).to_dict()
-    c1["uuid"] = "html1"
+    uuid1 = str(uuid.uuid4())
+    c1["uuid"] = uuid1
     status, _ = _request(base_url, "POST", "/content", c1, token=token)
     assert status == 201
     _publish_item(base_url, token, users, c1["uuid"])
 
     c2 = sample_content(users).to_dict()
-    c2["uuid"] = "html2"
+    uuid2 = str(uuid.uuid4())
+    c2["uuid"] = uuid2
     c2["categories"] = [cat_uuid]
     status, _ = _request(base_url, "POST", "/content", c2, token=token)
     assert status == 201
@@ -137,7 +140,7 @@ def test_list_content_by_type(tmp_path):
 
     returned = {item["uuid"] for item in body}
     assert status == 200
-    assert returned == {"html1", "html2"}
+    assert returned == {uuid1, uuid2}
 
 
 def test_authenticated_list_includes_drafts(tmp_path):
@@ -151,7 +154,8 @@ def test_authenticated_list_includes_drafts(tmp_path):
 
     # create item but leave in Draft state
     content = sample_content(users).to_dict()
-    content["uuid"] = "draft-html"
+    draft_uuid = str(uuid.uuid4())
+    content["uuid"] = draft_uuid
     status, _ = _request(base_url, "POST", "/content", content, token=token)
     assert status == 201
 
@@ -162,4 +166,4 @@ def test_authenticated_list_includes_drafts(tmp_path):
 
     returned = {item["uuid"] for item in body}
     assert status == 200
-    assert "draft-html" in returned
+    assert draft_uuid in returned

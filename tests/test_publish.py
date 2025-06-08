@@ -4,6 +4,7 @@ import os
 import sys
 import urllib.request
 import urllib.error
+import uuid
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -31,7 +32,7 @@ def _sample_content(content_type, users, idx):
     """Return a content payload with type-specific attributes."""
     ts = "2025-06-08T12:00:00"
     content = {
-        "uuid": f"uuid-{idx}",
+        "uuid": str(uuid.uuid4()),
         "title": f"{content_type.title()} Item {idx}",
         "type": content_type,
         "created_by": users["editor"]["uuid"],
