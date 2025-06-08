@@ -21,7 +21,6 @@ classDiagram
         published_revision: str
         review_revision: str
         state: str
-        archived: bool
         file: str
         pre_submission: bool
         categories: List[str]
@@ -52,8 +51,7 @@ classDiagram
  - **published_revision** – UUID of the currently published revision.
  - **review_revision** – UUID of the most recent review revision. Both fields
    are ``null`` when content is first created.
-- **state** – workflow state such as `Draft` or `AwaitingApproval`. Newly created items always start in the `Draft` state.
-- **archived** – set to `true` if the item is no longer active.
+ - **state** – workflow state such as `Draft`, `AwaitingApproval`, `Published`, or `Archived`. Newly created items always start in the `Draft` state.
 - **file** – base64 encoded file contents (PDF only).
 - **pre_submission** – boolean that indicates a newly created PDF has not yet been submitted for approval.
 - **categories** – list of category UUIDs the content belongs to.

@@ -117,7 +117,6 @@ def test_export_json_missing_metadata(api_server, users, auth_token):
         "created_by": users["editor"]["uuid"],
         # Missing 'created_at' and 'timestamps'
         "state": "Draft",
-        "archived": False,
     }
 
     status, body = _request(api_server, "POST", "/check-metadata", invalid_content, token=auth_token)
@@ -171,10 +170,11 @@ def test_crud_flow(api_server, content_html, auth_token):
     # ARCHIVE
     status, body = _request(api_server, "DELETE", f"/content/{updated['uuid']}", token=auth_token)
     assert status == 200
-    assert body["archived"] is True
     assert body["state"] == "Archived"
+    assert "archived" not in body
 
     # Confirm archived item is still retrievable
     status, body = _request(api_server, "GET", f"/content/{updated['uuid']}", token=auth_token)
     assert status == 200
-    assert body["archived"] is True
+    assert body["state"] == "Archived"
+    assert "archived" not in body

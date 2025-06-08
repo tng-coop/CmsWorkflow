@@ -126,7 +126,7 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 for i in self.store.values()
                 if i.get("type") == item_type
                 and (authenticated or i.get("state") == "Published")
-                and not i.get("archived")
+                and i.get("state") != "Archived"
             ]
             self._send_json(items)
             return
@@ -146,7 +146,7 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 item
                 for item in self.store.values()
                 if (authenticated or item.get("state") == "Published")
-                and not item.get("archived")
+                and item.get("state") != "Archived"
             ]
             self._send_json(items)
             return
