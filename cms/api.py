@@ -168,6 +168,13 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "invalid type"}, status=400)
             return
 
+        # validate required metadata on creation
+        try:
+            check_required_metadata(item)
+        except KeyError as exc:
+            self._send_json({"error": str(exc)}, status=400)
+            return
+
         item_uuid = item.get("uuid")
         if not item_uuid:
             item_uuid = str(uuid.uuid4())
@@ -195,14 +202,26 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 return
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length)
-            item = json.loads(body)
-            item_type = item.get("type")
-            if item_type not in self.valid_types:
-                self._send_json({"error": "invalid type"}, status=400)
+            incoming = json.loads(body)
+
+            existing = self.store[uuid]
+
+            # type field is immutable
+            new_type = incoming.get("type", existing.get("type"))
+            if new_type != existing.get("type"):
+                self._send_json({"error": "type cannot be changed"}, status=400)
                 return
-            self._ensure_revision_structure(item)
-            self.store[uuid] = item
-            self._send_json(item)
+
+            # metadata is immutable via this endpoint
+            if incoming.get("metadata") is not None and incoming["metadata"] != existing.get("metadata"):
+                self._send_json({"error": "metadata immutable"}, status=400)
+                return
+
+            updated = existing.copy()
+            updated.update({k: v for k, v in incoming.items() if k not in {"type", "metadata", "uuid"}})
+            self._ensure_revision_structure(updated)
+            self.store[uuid] = updated
+            self._send_json(updated)
         else:
             self._send_json({"error": "not found"}, status=404)
 
