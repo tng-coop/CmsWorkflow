@@ -56,6 +56,7 @@ Return a simple authentication token for the supplied username.
 
 ### `POST /categories`
 Create a category. The body accepts `name` and optional `display_priority`.
+Categories are flat and have no parent/child hierarchy.
 
 ### `GET /categories`
 List all active categories sorted by display priority (1 is highest) then alphabetically.
