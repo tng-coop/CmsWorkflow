@@ -58,17 +58,15 @@ def test_upload_pdf_content(api_server, auth_token, users):
         "title": "PDF Upload",
         "type": ContentType.PDF.value,
         "file": encoded,
-        "metadata": {
-            "created_by": users["editor"]["uuid"],
-            "created_at": "2025-06-09T12:00:00",
-            "edited_by": None,
-            "edited_at": None,
-            "draft_requested_by": None,
-            "draft_requested_at": None,
-            "approved_by": None,
-            "approved_at": None,
-            "timestamps": "2025-06-09T12:00:00",
-        },
+        "created_by": users["editor"]["uuid"],
+        "created_at": "2025-06-09T12:00:00",
+        "edited_by": None,
+        "edited_at": None,
+        "draft_requested_by": None,
+        "draft_requested_at": None,
+        "approved_by": None,
+        "approved_at": None,
+        "timestamps": "2025-06-09T12:00:00",
     }
 
     status, body = _request(api_server, "POST", "/content", content, token=auth_token)

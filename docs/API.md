@@ -22,13 +22,13 @@ Authorization: Bearer <token>
 Returns a list of supported content types.
 
 ### `POST /content`
-Create a new content item. The body must include a `type` field with one of the supported values and `metadata` containing at least `created_by`, `created_at` and `timestamps`. Regardless of any provided value, newly created items are stored in the `Draft` state.
+Create a new content item. The body must include a `type` field with one of the supported values as well as `created_by`, `created_at` and `timestamps`. Regardless of any provided value, newly created items are stored in the `Draft` state.
 
 ### `GET /content/<uuid>`
 Retrieve a stored content item.
 
 ### `PUT /content/<uuid>`
-Update a content item. The `type` and entire `metadata` block are immutable via this endpoint.
+Update a content item. The `type` and all metadata fields are immutable via this endpoint.
 
 ### `DELETE /content/<uuid>`
 Archive a content item. Items are not removed from the system.

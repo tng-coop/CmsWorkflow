@@ -1,4 +1,5 @@
 from .types import ContentType
+from .models import HTMLContent, Revision
 
 
 def seed_users():
@@ -13,26 +14,14 @@ def sample_content(users):
     """Create example HTML content using the provided users."""
     timestamp = "2025-06-08T12:00:00"
     revision_uuid = "rev-12345"
-    return {
-        "uuid": "12345",
-        "title": "Sample HTML Content",
-        "type": ContentType.HTML.value,
-        "metadata": {
-            "created_by": users["editor"]["uuid"],
-            "created_at": timestamp,
-            "edited_by": None,
-            "edited_at": None,
-            "draft_requested_by": None,
-            "draft_requested_at": None,
-            "approved_by": None,
-            "approved_at": None,
-            "timestamps": timestamp,
-        },
-        "revisions": [
-            {"uuid": revision_uuid, "last_updated": timestamp}
-        ],
-        "published_revision": revision_uuid,
-        "draft_revision": revision_uuid,
-        "state": "Draft",
-        "archived": False,
-    }
+    revision = Revision(uuid=revision_uuid, last_updated=timestamp)
+    return HTMLContent(
+        uuid="12345",
+        title="Sample HTML Content",
+        created_by=users["editor"]["uuid"],
+        created_at=timestamp,
+        timestamps=timestamp,
+        revisions=[revision],
+        published_revision=revision_uuid,
+        draft_revision=revision_uuid,
+    )

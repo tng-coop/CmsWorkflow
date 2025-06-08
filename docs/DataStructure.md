@@ -8,16 +8,6 @@ classDiagram
         uuid: str
         title: str
         type: ContentType
-        metadata: Metadata
-        revisions: Revision[]
-        published_revision: str
-        draft_revision: str
-        state: str
-        archived: bool
-        file: str
-        pre_submission: bool
-    }
-    class Metadata {
         created_by: str
         created_at: str
         edited_by: str
@@ -27,12 +17,18 @@ classDiagram
         approved_by: str
         approved_at: str
         timestamps: str
+        revisions: Revision[]
+        published_revision: str
+        draft_revision: str
+        state: str
+        archived: bool
+        file: str
+        pre_submission: bool
     }
     class Revision {
         uuid: str
         last_updated: str
     }
-    Content --> Metadata
     Content --> "1..*" Revision
 ```
 
@@ -41,7 +37,15 @@ classDiagram
 - **uuid** – unique identifier for the content item.
 - **title** – human readable title.
 - **type** – one of the values from `cms.types.ContentType`.
-- **metadata** – object containing audit and workflow metadata. `created_by`, `created_at` and `timestamps` are required when creating new items.
+- **created_by** – user UUID that created the item (required).
+- **created_at** – creation timestamp (required).
+- **edited_by** – UUID of the user currently editing the item.
+- **edited_at** – timestamp of the last edit.
+- **draft_requested_by** – UUID of the user that requested approval.
+- **draft_requested_at** – when approval was requested.
+- **approved_by** – UUID of the approver.
+- **approved_at** – timestamp of approval.
+- **timestamps** – original creation timestamp (required).
 - **revisions** – list of revision objects. Each revision includes a `uuid` and `last_updated` timestamp.
 - **published_revision** – UUID of the currently published revision.
 - **draft_revision** – UUID of the most recent draft revision.

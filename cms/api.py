@@ -29,14 +29,14 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
         """Populate revision fields if missing."""
         if "revisions" not in item or not item["revisions"]:
             rev_uuid = str(uuid.uuid4())
-            ts = item.get("metadata", {}).get("timestamps")
+            ts = item.get("timestamps") or item.get("metadata", {}).get("timestamps")
             item["revisions"] = [{"uuid": rev_uuid, "last_updated": ts}]
             item.setdefault("published_revision", rev_uuid)
             item.setdefault("draft_revision", rev_uuid)
         else:
             for rev in item["revisions"]:
                 rev.setdefault(
-                    "last_updated", item.get("metadata", {}).get("timestamps")
+                    "last_updated", item.get("timestamps") or item.get("metadata", {}).get("timestamps")
                 )
             item.setdefault("published_revision", item["revisions"][0]["uuid"])
             item.setdefault("draft_revision", item["revisions"][-1]["uuid"])
@@ -219,13 +219,33 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "type cannot be changed"}, status=400)
                 return
 
-            # metadata is immutable via this endpoint
-            if incoming.get("metadata") is not None and incoming["metadata"] != existing.get("metadata"):
-                self._send_json({"error": "metadata immutable"}, status=400)
-                return
+            # metadata fields are immutable via this endpoint
+            metadata_fields = {
+                "created_by",
+                "created_at",
+                "edited_by",
+                "edited_at",
+                "draft_requested_by",
+                "draft_requested_at",
+                "approved_by",
+                "approved_at",
+                "timestamps",
+            }
+
+            # support old structure
+            if incoming.get("metadata") is not None:
+                if incoming.get("metadata") != existing.get("metadata"):
+                    self._send_json({"error": "metadata immutable"}, status=400)
+                    return
+            else:
+                for field in metadata_fields:
+                    if field in incoming and incoming[field] != existing.get(field):
+                        self._send_json({"error": "metadata immutable"}, status=400)
+                        return
 
             updated = existing.copy()
-            updated.update({k: v for k, v in incoming.items() if k not in {"type", "metadata", "uuid"}})
+            excluded = metadata_fields | {"type", "metadata", "uuid"}
+            updated.update({k: v for k, v in incoming.items() if k not in excluded})
             self._ensure_revision_structure(updated)
             self.store[uuid] = updated
             self._send_json(updated)

@@ -19,7 +19,7 @@ def users():
 
 @pytest.fixture()
 def content_html(users):
-    return sample_content(users)
+    return sample_content(users).to_dict()
 
 
 @pytest.fixture()
@@ -90,7 +90,7 @@ def test_check_required_metadata_success(api_server, content_html, auth_token):
 
 
 def test_content_created_without_state_starts_in_draft(api_server, users, auth_token):
-    content = sample_content(users)
+    content = sample_content(users).to_dict()
     content.pop("state", None)
     status, body = _request(api_server, "POST", "/content", content, token=auth_token)
     assert status == 201
@@ -109,10 +109,8 @@ def test_export_json_missing_metadata(api_server, users, auth_token):
         "uuid": "12350",
         "title": "Missing Metadata Content",
         "type": "HTML",
-        "metadata": {
-            "created_by": users["editor"]["uuid"],
-            # Missing 'created_at' and 'timestamps'
-        },
+        "created_by": users["editor"]["uuid"],
+        # Missing 'created_at' and 'timestamps'
         "state": "Draft",
         "archived": False,
     }
