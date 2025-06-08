@@ -1,3 +1,6 @@
+from .types import ContentType
+
+
 def seed_users():
     """Return a dictionary of example users."""
     return {
@@ -11,7 +14,7 @@ def sample_content(users):
     return {
         "uuid": "12345",
         "title": "Sample HTML Content",
-        "type": "HTML",
+        "type": ContentType.HTML.value,
         "metadata": {
             "created_by": users["editor"]["uuid"],
             "created_at": "2025-06-08T12:00:00",
