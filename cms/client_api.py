@@ -80,8 +80,20 @@ class ApiClient:
     def get_content(self, uuid: str):
         return self.get(f"/content/{uuid}", token=self.token)
 
-    def create_content(self, item: dict):
-        return self.post("/content", item, token=self.token)
+    def create_content(self, item: dict, token: Optional[str] = None):
+        return self.post("/content", item, token=token or self.token)
+
+    def request_approval(self, uuid: str, timestamp: str, user_uuid: str, token: Optional[str] = None):
+        data = {"timestamp": timestamp, "user_uuid": user_uuid}
+        return self.post(f"/content/{uuid}/request-approval", data, token=token or self.token)
+
+    def approve_content(self, uuid: str, timestamp: str, user_uuid: str, token: Optional[str] = None):
+        data = {"timestamp": timestamp, "user_uuid": user_uuid}
+        return self.post(f"/content/{uuid}/approve", data, token=token or self.token)
+
+    def start_draft(self, uuid: str, timestamp: str, user_uuid: str, token: Optional[str] = None):
+        data = {"timestamp": timestamp, "user_uuid": user_uuid}
+        return self.post(f"/content/{uuid}/start-draft", data, token=token or self.token)
 
 
 # Seeder --------------------------------------------------------------
@@ -91,7 +103,9 @@ def seed_server(api: ApiClient):
     """Populate the running API server using the built-in seed data."""
     users = seed_users()
     contents = seed_example_contents(users)
-    api.create_token("editor")
+    token_editor = api.create_token("editor")
     for item in contents:
-        api.create_content(item.to_dict())
+        api.create_content(item.to_dict(), token=token_editor)
+    api.token = token_editor
+    api.username = "editor"
     return users

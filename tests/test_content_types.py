@@ -138,3 +138,28 @@ def test_list_content_by_type(tmp_path):
     returned = {item["uuid"] for item in body}
     assert status == 200
     assert returned == {"html1", "html2"}
+
+
+def test_authenticated_list_includes_drafts(tmp_path):
+    server, thread = start_test_server()
+    base_url = f"http://localhost:{server.server_port}"
+    users = seed_users()
+
+    status, body = _request(base_url, "POST", "/test-token", {"username": "t"})
+    assert status == 200
+    token = body["token"]
+
+    # create item but leave in Draft state
+    content = sample_content(users).to_dict()
+    content["uuid"] = "draft-html"
+    status, _ = _request(base_url, "POST", "/content", content, token=token)
+    assert status == 201
+
+    # authenticated request should include draft item
+    status, body = _request(base_url, "GET", "/content-types/html", token=token)
+    server.shutdown()
+    thread.join()
+
+    returned = {item["uuid"] for item in body}
+    assert status == 200
+    assert "draft-html" in returned

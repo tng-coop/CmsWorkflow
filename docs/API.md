@@ -22,8 +22,10 @@ Authorization: Bearer <token>
 Returns a list of supported content types.
 
 ### `GET /content-types/<type>`
-List all published content items for the given type. The `<type>` parameter must
-match one of the values returned by `GET /content-types`.
+List all content items for the given type. Without authentication only
+published items are returned. If a valid bearer token is supplied, draft items
+are included as well. The `<type>` parameter must match one of the values
+returned by `GET /content-types`.
 
 ### `POST /content`
 Create a new content item. The body must include a `type` field with one of the supported values as well as `created_by`, `created_at` and `timestamps`. Regardless of any provided value, newly created items are stored in the `Draft` state.
@@ -32,7 +34,8 @@ Create a new content item. The body must include a `type` field with one of the 
 Retrieve a stored content item.
 
 ### `GET /content`
-List all published content items. This endpoint does not require authentication.
+List content items across all types. Without authentication only published
+items are returned. When authenticated, draft items are included.
 
 ### `PUT /content/<uuid>`
 Update a content item. The `type` and all metadata fields are immutable via this endpoint.

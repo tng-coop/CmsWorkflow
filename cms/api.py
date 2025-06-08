@@ -120,11 +120,12 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             if item_type not in self.valid_types:
                 self._send_json({"error": "invalid type"}, status=400)
                 return
+            authenticated = self._authenticate()
             items = [
                 i
                 for i in self.store.values()
                 if i.get("type") == item_type
-                and i.get("state") == "Published"
+                and (authenticated or i.get("state") == "Published")
                 and not i.get("archived")
             ]
             self._send_json(items)
@@ -140,12 +141,14 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             self._send_json(pending)
             return
         if parsed.path == "/content":
-            published = [
+            authenticated = self._authenticate()
+            items = [
                 item
                 for item in self.store.values()
-                if item.get("state") == "Published" and not item.get("archived")
+                if (authenticated or item.get("state") == "Published")
+                and not item.get("archived")
             ]
-            self._send_json(published)
+            self._send_json(items)
             return
         if parsed.path.startswith("/content/"):
             if not self._authenticate():
