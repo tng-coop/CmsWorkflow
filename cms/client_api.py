@@ -46,8 +46,9 @@ class ApiClient:
         return self.get("/content-types")
 
     def list_content_by_type(self, content_type: str):
-        quoted = parse.quote(content_type)
-        return self.get(f"/content-types/{quoted}")
+        # Server endpoints expect the raw content type value without
+        # percent-encoding, even if it contains spaces.
+        return self.get(f"/content-types/{content_type}")
 
     def get_content(self, uuid: str):
         return self.get(f"/content/{uuid}", token=self.token)
