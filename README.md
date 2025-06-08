@@ -47,6 +47,10 @@ The server listens for JSON requests on endpoints such as:
 - `GET /content/<uuid>` – retrieve a stored item.
 - `PUT /content/<uuid>` – update an item.
 - `DELETE /content/<uuid>` – remove an item.
+- `POST /test-token` – obtain a test API token for a username.
+
+All content endpoints require an `Authorization` header of the form `Bearer <token>`.
+Tokens are retrieved via the `/test-token` endpoint and are only intended for testing.
 
 ## Using the Workflow Helpers
 
