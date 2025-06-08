@@ -6,6 +6,14 @@ from urllib.parse import urlparse
 
 class SimpleCRUDHandler(BaseHTTPRequestHandler):
     store = {}
+    tokens = {}
+
+    def _authenticate(self):
+        auth = self.headers.get("Authorization", "")
+        if not auth.startswith("Bearer "):
+            return False
+        token = auth.split(" ", 1)[1]
+        return token in self.tokens
 
     def _send_json(self, data, status=200):
         response = json.dumps(data).encode()
@@ -17,7 +25,18 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/published/"):
+            uuid = parsed.path.split("/")[-1]
+            item = self.store.get(uuid)
+            if item is None or item.get("archived"):
+                self._send_json({"error": "not found"}, status=404)
+            else:
+                self._send_json(item)
+            return
         if parsed.path.startswith("/content/"):
+            if not self._authenticate():
+                self._send_json({"error": "unauthorized"}, status=401)
+                return
             uuid = parsed.path.split("/")[-1]
             item = self.store.get(uuid)
             if item is None:
@@ -28,8 +47,23 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "not found"}, status=404)
 
     def do_POST(self):
+        if self.path == "/test-token":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            data = json.loads(body)
+            username = data.get("username")
+            if not username:
+                self._send_json({"error": "username required"}, status=400)
+                return
+            token = f"token-{username}"
+            self.__class__.tokens[token] = username
+            self._send_json({"token": token})
+            return
         if self.path != "/content":
             self._send_json({"error": "not found"}, status=404)
+            return
+        if not self._authenticate():
+            self._send_json({"error": "unauthorized"}, status=401)
             return
         length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(length)
@@ -44,6 +78,9 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
     def do_PUT(self):
         parsed = urlparse(self.path)
         if parsed.path.startswith("/content/"):
+            if not self._authenticate():
+                self._send_json({"error": "unauthorized"}, status=401)
+                return
             uuid = parsed.path.split("/")[-1]
             if uuid not in self.store:
                 self._send_json({"error": "not found"}, status=404)
@@ -59,6 +96,9 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
     def do_DELETE(self):
         parsed = urlparse(self.path)
         if parsed.path.startswith("/content/"):
+            if not self._authenticate():
+                self._send_json({"error": "unauthorized"}, status=401)
+                return
             uuid = parsed.path.split("/")[-1]
             if uuid in self.store:
                 del self.store[uuid]
