@@ -55,7 +55,6 @@ def test_upload_pdf_content(api_server, auth_token, users):
     encoded = base64.b64encode(pdf_bytes).decode()
 
     content = {
-        "uuid": "pdf-123",
         "title": "PDF Upload",
         "type": ContentType.PDF.value,
         "file": encoded,
@@ -70,12 +69,12 @@ def test_upload_pdf_content(api_server, auth_token, users):
             "approved_at": None,
             "timestamps": "2025-06-09T12:00:00",
         },
-        "state": "Draft",
-        "archived": False,
     }
 
     status, body = _request(api_server, "POST", "/content", content, token=auth_token)
     assert status == 201
-    assert body["uuid"] == content["uuid"]
     assert body["type"] == ContentType.PDF.value
     assert body["file"] == encoded
+    assert "uuid" in body and body["uuid"]
+    assert body["state"] == "Draft"
+    assert body["pre_submission"] is True

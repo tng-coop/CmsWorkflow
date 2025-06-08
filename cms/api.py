@@ -1,4 +1,5 @@
 import json
+import uuid
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
 from urllib.parse import urlparse
@@ -60,11 +61,18 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(length)
         item = json.loads(body)
-        uuid = item.get("uuid")
-        if not uuid:
-            self._send_json({"error": "uuid required"}, status=400)
-            return
-        self.store[uuid] = item
+
+        item_uuid = item.get("uuid")
+        if not item_uuid:
+            item_uuid = str(uuid.uuid4())
+            item["uuid"] = item_uuid
+
+        # PDFs should start in Draft/pre-submission state
+        if item.get("type") == "pdf":
+            item["state"] = "Draft"
+            item["pre_submission"] = True
+
+        self.store[item_uuid] = item
         self._send_json(item, status=201)
 
     def do_PUT(self):
