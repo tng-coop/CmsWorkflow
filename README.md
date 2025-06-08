@@ -76,6 +76,7 @@ The server listens for JSON requests on endpoints such as:
 
 All content endpoints require an `Authorization` header of the form `Bearer <token>`.
 Tokens are retrieved via the `/test-token` endpoint and are only intended for testing.
+For a complete list of endpoints and their payloads, see [docs/API.md](docs/API.md).
 
 ## Using the Workflow Helpers
 
