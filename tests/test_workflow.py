@@ -13,6 +13,7 @@ from cms.workflow import (
     check_required_metadata,
     pending_approvals,
     request_approval,
+    start_draft,
 )
 from cms.api import start_test_server
 
@@ -80,6 +81,16 @@ def test_export_json_missing_metadata(users):
 
     with pytest.raises(KeyError):
         check_required_metadata(invalid_content)
+
+
+def test_draft_locked_for_other_user(content_html, users):
+    ts1 = "2025-06-10T09:00:00"
+    start_draft(content_html, users["editor"], ts1)
+
+    with pytest.raises(PermissionError) as excinfo:
+        start_draft(content_html, users["admin"], "2025-06-10T10:00:00")
+
+    assert users["editor"]["uuid"] in str(excinfo.value)
 
 
 def test_crud_flow(api_server, content_html):
