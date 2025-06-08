@@ -53,3 +53,10 @@ def test_load_content_and_show_item(qt_app, cms_window):
     qt_app.processEvents()
 
     assert "GET /content/" in cms_window.output.toPlainText()
+
+
+def test_clear_output_action(cms_window):
+    cms_window.output.append("dummy")
+    assert cms_window.output.toPlainText() != ""
+    cms_window._clear_output()
+    assert cms_window.output.toPlainText() == ""
