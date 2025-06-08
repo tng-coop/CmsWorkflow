@@ -46,9 +46,11 @@ class ApiClient:
         return self.get("/content-types")
 
     def list_content_by_type(self, content_type: str):
-        # Server endpoints expect the raw content type value without
-        # percent-encoding, even if it contains spaces.
-        return self.get(f"/content-types/{content_type}")
+        # Content types may contain spaces (e.g. "event schedule").
+        # ``urllib.request`` does not allow spaces in the request path, so we
+        # percent-encode the value.  The server will decode it again.
+        encoded = parse.quote(content_type, safe="")
+        return self.get(f"/content-types/{encoded}")
 
     def get_content(self, uuid: str):
         return self.get(f"/content/{uuid}", token=self.token)
