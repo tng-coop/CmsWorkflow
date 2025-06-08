@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (
     QListWidget,
     QTextEdit,
     QLabel,
+    QPushButton,
 )
 from PyQt5.QtCore import Qt
 
@@ -29,7 +30,20 @@ class CmsWindow(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
 
-        main_layout = QHBoxLayout(central)
+        main_layout = QVBoxLayout(central)
+
+        toolbar = QHBoxLayout()
+        self.status_label = QLabel()
+        self.logout_btn = QPushButton("Logout")
+        self.login_editor_btn = QPushButton("Login as Editor")
+        self.login_admin_btn = QPushButton("Login as Admin")
+        toolbar.addWidget(self.logout_btn)
+        toolbar.addWidget(self.login_editor_btn)
+        toolbar.addWidget(self.login_admin_btn)
+        toolbar.addWidget(self.status_label)
+        toolbar.addStretch()
+
+        content_layout = QHBoxLayout()
 
         self.type_list = QListWidget()
         self.item_list = QListWidget()
@@ -46,16 +60,40 @@ class CmsWindow(QMainWindow):
         right_layout.addWidget(QLabel("API Responses"))
         right_layout.addWidget(self.output)
 
-        main_layout.addLayout(left_layout)
-        main_layout.addLayout(right_layout)
+        content_layout.addLayout(left_layout)
+        content_layout.addLayout(right_layout)
+
+        main_layout.addLayout(toolbar)
+        main_layout.addLayout(content_layout)
 
         self.type_list.itemClicked.connect(self._load_items)
         self.item_list.itemClicked.connect(self._show_item)
+        self.logout_btn.clicked.connect(self._logout)
+        self.login_editor_btn.clicked.connect(lambda: self._login("editor"))
+        self.login_admin_btn.clicked.connect(lambda: self._login("admin"))
+
+        self._update_status()
 
     def _append_response(self, request_desc: str, data):
         self.output.append(request_desc)
         self.output.append(json.dumps(data, indent=2))
         self.output.append("")
+
+    def _update_status(self):
+        if self.api.username:
+            self.status_label.setText(f"Logged in as {self.api.username}")
+        else:
+            self.status_label.setText("Logged out")
+
+    def _login(self, username: str):
+        token = self.api.create_token(username)
+        self._append_response("POST /test-token", {"token": token})
+        self._update_status()
+
+    def _logout(self):
+        self.api.logout()
+        self._append_response("LOGOUT", {"token": None})
+        self._update_status()
 
     def _load_content_types(self):
         types = self.api.get_content_types()
@@ -76,8 +114,12 @@ class CmsWindow(QMainWindow):
 
     def _show_item(self, item):
         uuid = item.data(Qt.UserRole)
-        data = self.api.get_content(uuid)
-        self._append_response(f"GET /content/{uuid}", data)
+        try:
+            data = self.api.get_content(uuid)
+        except Exception as exc:
+            self._append_response(f"GET /content/{uuid} ERROR", {"error": str(exc)})
+        else:
+            self._append_response(f"GET /content/{uuid}", data)
 
 
 def main():
