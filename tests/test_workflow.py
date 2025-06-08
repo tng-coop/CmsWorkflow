@@ -2,7 +2,7 @@ import json
 import unittest
 
 from cms.data import seed_users, sample_content
-from cms.workflow import check_required_metadata
+from cms.workflow import check_required_metadata, pending_approvals
 
 
 class TestCMSWorkflow(unittest.TestCase):
@@ -10,6 +10,12 @@ class TestCMSWorkflow(unittest.TestCase):
         self.users = seed_users()
         self.content_html = sample_content(self.users)
         self.draft_content_html = self.content_html.copy()
+
+    def test_editor_does_not_submit_content_admin_sees_nothing(self):
+        """Content saved as draft should not appear in admin approval queue."""
+        contents = [self.content_html]
+        pending = pending_approvals(contents)
+        self.assertEqual(pending, [], "Admin should not see approval requests")
 
     def test_export_json_missing_metadata(self):
         """Test exporting content that has missing metadata fields."""
