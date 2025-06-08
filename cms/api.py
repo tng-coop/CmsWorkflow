@@ -2,7 +2,7 @@ import json
 import uuid
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 
 from .types import ContentType
 from .workflow import (
@@ -114,7 +114,9 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             self._send_json(sorted(self.valid_types))
             return
         if parsed.path.startswith("/content-types/"):
-            item_type = parsed.path.split("/")[-1]
+            # decode any percent-encoding to allow client requests that
+            # properly escape spaces in content type values
+            item_type = unquote(parsed.path.split("/")[-1])
             if item_type not in self.valid_types:
                 self._send_json({"error": "invalid type"}, status=400)
                 return
