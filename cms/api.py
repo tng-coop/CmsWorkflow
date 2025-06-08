@@ -55,7 +55,8 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
         if "revisions" not in item or not item["revisions"]:
             rev_uuid = str(uuid.uuid4())
             ts = item.get("timestamps") or item.get("metadata", {}).get("timestamps")
-            item["revisions"] = [{"uuid": rev_uuid, "last_updated": ts}]
+            attrs = item.get("review_content") or item.get("published_content") or {}
+            item["revisions"] = [{"uuid": rev_uuid, "last_updated": ts, "attributes": attrs}]
         else:
             for rev in item["revisions"]:
                 rev.setdefault(
@@ -73,8 +74,10 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             or item.get("metadata", {}).get("timestamps")
         )
         attrs = {}
-        if "title" in item:
-            attrs["title"] = item["title"]
+        if item.get("review_content"):
+            attrs.update(item["review_content"])
+        elif item.get("published_content"):
+            attrs.update(item["published_content"])
         if "file" in item:
             attrs["file"] = item["file"]
         item.setdefault("revisions", [])
@@ -125,8 +128,8 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 i
                 for i in self.store.values()
                 if i.get("type") == item_type
-                and (authenticated or i.get("state") == "Published")
-                and i.get("state") != "Archived"
+                and (authenticated or i.get("published_content"))
+                and not i.get("archived")
             ]
             self._send_json(items)
             return
@@ -135,8 +138,9 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "unauthorized"}, status=401)
                 return
             pending = [
-                item for item in self.store.values()
-                if item.get("state") == "AwaitingApproval"
+                item
+                for item in self.store.values()
+                if item.get("draft_requested_by") and not item.get("approved_at") and not item.get("archived")
             ]
             self._send_json(pending)
             return
@@ -145,8 +149,8 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             items = [
                 item
                 for item in self.store.values()
-                if (authenticated or item.get("state") == "Published")
-                and item.get("state") != "Archived"
+                if (authenticated or item.get("published_content"))
+                and not item.get("archived")
             ]
             self._send_json(items)
             return
@@ -307,12 +311,19 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             item_uuid = str(uuid.uuid4())
             item["uuid"] = item_uuid
 
-        # all newly created content should begin in Draft state
-        item["state"] = "Draft"
+        item.pop("state", None)
 
-        # PDFs should start in Draft/pre-submission state
+        # PDFs should start in pre-submission state
         if item.get("type") == "pdf":
             item["pre_submission"] = True
+
+        title = item.pop("title", None)
+        review_content = item.pop("review_content", {})
+        if title is not None:
+            review_content.setdefault("title", title)
+        item.setdefault("published_content", {})
+        item["review_content"] = review_content
+        item["archived"] = False
 
         self._ensure_revision_structure(item)
 
@@ -389,8 +400,16 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
                         return
 
             updated = existing.copy()
-            excluded = metadata_fields | {"type", "metadata", "uuid"}
+            excluded = metadata_fields | {"type", "metadata", "uuid", "published_content", "review_content", "title"}
             updated.update({k: v for k, v in incoming.items() if k not in excluded})
+
+            review_content = incoming.get("review_content")
+            if "title" in incoming:
+                review_content = review_content or {}
+                review_content["title"] = incoming["title"]
+            if review_content is not None:
+                updated["review_content"] = review_content
+            # published_content immutable via this endpoint
             self._ensure_revision_structure(updated)
             self._add_revision(updated)
             self.store[uuid] = updated

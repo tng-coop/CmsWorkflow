@@ -48,7 +48,7 @@ def test_post_invalid_content_type(tmp_path):
     assert status == 200
     token = body["token"]
 
-    content = {"title": "Bad", "type": "unknown"}
+    content = {"review_content": {"title": "Bad"}, "type": "unknown"}
     status, body = _request(base_url, "POST", "/content", content, token=token)
     server.shutdown()
     thread.join()

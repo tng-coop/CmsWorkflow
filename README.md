@@ -23,8 +23,7 @@ Each content item stored by the API contains:
    fields are ``null`` when content is first created.
 
 The helper `cms.data.sample_content` returns an example object with this
-structure. When creating content, the API leaves the revision references
-unset so new items begin in the ``Draft`` state. A full breakdown of all
+structure. A full breakdown of all
 fields can be found in
 [docs/DataStructure.md](docs/DataStructure.md).
 

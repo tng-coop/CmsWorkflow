@@ -58,7 +58,7 @@ def test_revision_history(api_server, users, auth_token):
 
     for i in range(3):
         updated = body.copy()
-        updated["title"] = f"Update {i}"
+        updated["review_content"] = {"title": f"Update {i}"}
         status, body = _request(api_server, "PUT", f"/content/{updated['uuid']}", updated, token=auth_token)
         assert status == 200
 

@@ -33,7 +33,7 @@ def _sample_content(content_type, users, idx):
     ts = "2025-06-08T12:00:00"
     content = {
         "uuid": str(uuid.uuid4()),
-        "title": f"{content_type.title()} Item {idx}",
+        "review_content": {"title": f"{content_type.title()} Item {idx}"},
         "type": content_type,
         "created_by": users["editor"]["uuid"],
         "created_at": ts,

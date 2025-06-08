@@ -77,7 +77,7 @@ def test_request_approval_adds_to_pending(api_server, content_html, users, auth_
         token=auth_token,
     )
     assert status == 200
-    assert body["state"] == "AwaitingApproval"
+    assert body["draft_requested_by"] == users["editor"]["uuid"]
 
     status, body = _request(api_server, "GET", "/pending-approvals", token=auth_token)
     assert status == 200
@@ -92,19 +92,19 @@ def test_check_required_metadata_success(api_server, content_html, auth_token):
 
 def test_content_created_without_state_starts_in_draft(api_server, users, auth_token):
     content = sample_content(users).to_dict()
-    content.pop("state", None)
     status, body = _request(api_server, "POST", "/content", content, token=auth_token)
     assert status == 201
-    assert body["state"] == "Draft"
+    assert body.get("published_content") == {}
+    assert body.get("review_content")["title"] == content["review_content"]["title"]
     assert body.get("published_revision") is None
     assert body.get("review_revision") is None
 
 
-def test_content_state_overridden_to_draft(api_server, content_html, auth_token):
+def test_content_state_field_ignored(api_server, content_html, auth_token):
     content_html["state"] = "Published"
     status, body = _request(api_server, "POST", "/content", content_html, token=auth_token)
     assert status == 201
-    assert body["state"] == "Draft"
+    assert "state" not in body
     assert body.get("published_revision") is None
     assert body.get("review_revision") is None
 
@@ -112,11 +112,10 @@ def test_content_state_overridden_to_draft(api_server, content_html, auth_token)
 def test_export_json_missing_metadata(api_server, users, auth_token):
     invalid_content = {
         "uuid": str(uuid.uuid4()),
-        "title": "Missing Metadata Content",
+        "review_content": {"title": "Missing Metadata Content"},
         "type": "HTML",
         "created_by": users["editor"]["uuid"],
         # Missing 'created_at' and 'timestamps'
-        "state": "Draft",
     }
 
     status, body = _request(api_server, "POST", "/check-metadata", invalid_content, token=auth_token)
@@ -162,19 +161,17 @@ def test_crud_flow(api_server, content_html, auth_token):
 
     # UPDATE
     updated = body.copy()
-    updated["title"] = "Updated"
+    updated["review_content"] = {"title": "Updated"}
     status, body = _request(api_server, "PUT", f"/content/{updated['uuid']}", updated, token=auth_token)
     assert status == 200
-    assert body["title"] == "Updated"
+    assert body["review_content"]["title"] == "Updated"
 
     # ARCHIVE
     status, body = _request(api_server, "DELETE", f"/content/{updated['uuid']}", token=auth_token)
     assert status == 200
-    assert body["state"] == "Archived"
-    assert "archived" not in body
+    assert body["archived"] is True
 
     # Confirm archived item is still retrievable
     status, body = _request(api_server, "GET", f"/content/{updated['uuid']}", token=auth_token)
     assert status == 200
-    assert body["state"] == "Archived"
-    assert "archived" not in body
+    assert body["archived"] is True

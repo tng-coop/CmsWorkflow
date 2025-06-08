@@ -6,7 +6,6 @@ This document describes the JSON schema used for content items stored by the CMS
 classDiagram
     class Content {
         uuid: str
-        title: str
         type: ContentType
         created_by: str
         created_at: str
@@ -20,7 +19,9 @@ classDiagram
         revisions: Revision[]
         published_revision: str
         review_revision: str
-        state: str
+        published_content: dict
+        review_content: dict
+        archived: bool
         file: str
         pre_submission: bool
         categories: List[str]
@@ -36,7 +37,6 @@ classDiagram
 ## Fields
 
 - **uuid** – unique identifier for the content item.
-- **title** – human readable title.
 - **type** – one of the values from `cms.types.ContentType`.
 - **created_by** – user UUID that created the item (required).
 - **created_at** – creation timestamp (required).
@@ -51,18 +51,12 @@ classDiagram
  - **published_revision** – UUID of the currently published revision.
  - **review_revision** – UUID of the most recent review revision. Both fields
    are ``null`` when content is first created.
- - **state** – workflow state such as `Draft`, `AwaitingApproval`, `Published`, or `Archived`. Newly created items always start in the `Draft` state.
+ - **published_content** – dictionary storing the currently published attributes.
+ - **review_content** – dictionary storing attributes under review.
+ - **archived** – set to `true` when the item has been archived.
 - **file** – base64 encoded file contents (PDF only).
 - **pre_submission** – boolean that indicates a newly created PDF has not yet been submitted for approval.
 - **categories** – list of category UUIDs the content belongs to.
-
-```mermaid
-flowchart TD
-    Draft -->|request approval| AwaitingApproval
-    AwaitingApproval -->|approve| Published
-    Draft -.->|archive| Archived
-    Published -.->|archive| Archived
-```
 
 The API will automatically populate revision fields and enforce type validation as demonstrated in the tests.
 

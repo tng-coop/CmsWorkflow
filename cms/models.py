@@ -19,7 +19,6 @@ class Category:
 @dataclass
 class Content:
     uuid: str
-    title: str
     type: ContentType = field(init=False)
     created_by: str
     created_at: str
@@ -33,10 +32,12 @@ class Content:
     revisions: List[Revision] = field(default_factory=list)
     published_revision: Optional[str] = None
     review_revision: Optional[str] = None
-    state: str = "Draft"
     file: Optional[str] = None
     pre_submission: Optional[bool] = None
     categories: List[str] = field(default_factory=list)
+    published_content: dict = field(default_factory=dict)
+    review_content: dict = field(default_factory=dict)
+    archived: bool = False
 
     def to_dict(self):
         data = asdict(self)

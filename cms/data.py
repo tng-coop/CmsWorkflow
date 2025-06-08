@@ -29,12 +29,12 @@ def sample_content(users):
     )
     return HTMLContent(
         uuid=str(uuid.uuid4()),
-        title="Sample HTML Content",
         created_by=users["editor"]["uuid"],
         created_at=timestamp,
         timestamps=timestamp,
         revisions=[revision],
         categories=[],
+        review_content={"title": "Sample HTML Content"},
     )
 
 
@@ -51,12 +51,12 @@ def seed_example_contents(users):
             )
             base_kwargs = dict(
                 uuid=str(uuid.uuid4()),
-                title=f"Example {ct.value}",
                 created_by=users["editor"]["uuid"],
                 created_at=timestamp,
                 timestamps=timestamp,
                 revisions=[rev],
                 categories=[],
+                review_content={"title": f"Example {ct.value}"},
             )
             if ct is ContentType.HTML:
                 contents.append(HTMLContent(**base_kwargs))

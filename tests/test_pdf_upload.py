@@ -55,7 +55,7 @@ def test_upload_pdf_content(api_server, auth_token, users):
     encoded = base64.b64encode(pdf_bytes).decode()
 
     content = {
-        "title": "PDF Upload",
+        "review_content": {"title": "PDF Upload"},
         "type": ContentType.PDF.value,
         "file": encoded,
         "created_by": users["editor"]["uuid"],
@@ -74,7 +74,6 @@ def test_upload_pdf_content(api_server, auth_token, users):
     assert body["type"] == ContentType.PDF.value
     assert body["file"] == encoded
     assert "uuid" in body and body["uuid"]
-    assert body["state"] == "Draft"
     assert body["pre_submission"] is True
     assert body.get("published_revision") is None
     assert body.get("review_revision") is None
