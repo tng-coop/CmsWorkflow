@@ -113,6 +113,20 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
         if parsed.path == "/content-types":
             self._send_json(sorted(self.valid_types))
             return
+        if parsed.path.startswith("/content-types/"):
+            item_type = parsed.path.split("/")[-1]
+            if item_type not in self.valid_types:
+                self._send_json({"error": "invalid type"}, status=400)
+                return
+            items = [
+                i
+                for i in self.store.values()
+                if i.get("type") == item_type
+                and i.get("state") == "Published"
+                and not i.get("archived")
+            ]
+            self._send_json(items)
+            return
         if parsed.path == "/pending-approvals":
             if not self._authenticate():
                 self._send_json({"error": "unauthorized"}, status=401)
@@ -409,6 +423,9 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
 
 def start_test_server(port=0):
     """Start the CRUD HTTP server on a background thread."""
+    SimpleCRUDHandler.store = {}
+    SimpleCRUDHandler.categories = {}
+    SimpleCRUDHandler.tokens = {}
     server = HTTPServer(("localhost", port), SimpleCRUDHandler)
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
