@@ -28,17 +28,24 @@ def _request(base_url, method, path, data=None, token=None):
 
 
 def _sample_content(content_type, users, idx):
+    """Return a content payload with type-specific attributes."""
     ts = "2025-06-08T12:00:00"
     content = {
         "uuid": f"uuid-{idx}",
-        "title": f"Item {idx}",
+        "title": f"{content_type.title()} Item {idx}",
         "type": content_type,
         "created_by": users["editor"]["uuid"],
         "created_at": ts,
         "timestamps": ts,
     }
     if content_type == ContentType.PDF.value:
-        content["file"] = base64.b64encode(b"pdf").decode()
+        content["file"] = base64.b64encode(f"pdf-{idx}".encode()).decode()
+    elif content_type == ContentType.OFFICE_ADDRESS.value:
+        content["address"] = f"{idx} Example Rd." 
+    elif content_type == ContentType.EVENT_SCHEDULE.value:
+        content["event_date"] = f"2025-06-{10 + idx:02d}T09:00:00"
+    else:
+        content["body"] = f"<p>Example HTML {idx}</p>"
     return content
 
 
@@ -52,22 +59,25 @@ def test_publish_and_list_public_content():
     token = body["token"]
 
     uuids = []
-    for idx, ct in enumerate([
+    counter = 0
+    for ct in [
         ContentType.HTML.value,
         ContentType.PDF.value,
         ContentType.OFFICE_ADDRESS.value,
         ContentType.EVENT_SCHEDULE.value,
-    ]):
-        content = _sample_content(ct, users, idx)
-        status, body = _request(base_url, "POST", "/content", content, token=token)
-        assert status == 201
-        uuids.append(body["uuid"])
-        data = {"timestamp": "2025-06-09T10:00:00", "user_uuid": users["editor"]["uuid"]}
-        status, _ = _request(base_url, "POST", f"/content/{body['uuid']}/request-approval", data, token=token)
-        assert status == 200
-        data = {"timestamp": "2025-06-09T11:00:00", "user_uuid": users["admin"]["uuid"]}
-        status, _ = _request(base_url, "POST", f"/content/{body['uuid']}/approve", data, token=token)
-        assert status == 200
+    ]:
+        for _ in range(3):
+            content = _sample_content(ct, users, counter)
+            counter += 1
+            status, body = _request(base_url, "POST", "/content", content, token=token)
+            assert status == 201
+            uuids.append(body["uuid"])
+            data = {"timestamp": "2025-06-09T10:00:00", "user_uuid": users["editor"]["uuid"]}
+            status, _ = _request(base_url, "POST", f"/content/{body['uuid']}/request-approval", data, token=token)
+            assert status == 200
+            data = {"timestamp": "2025-06-09T11:00:00", "user_uuid": users["admin"]["uuid"]}
+            status, _ = _request(base_url, "POST", f"/content/{body['uuid']}/approve", data, token=token)
+            assert status == 200
 
     status, body = _request(base_url, "GET", "/content")
     server.shutdown()
