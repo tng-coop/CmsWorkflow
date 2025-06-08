@@ -86,10 +86,11 @@ def archive_content(content):
     """Mark a content item as archived."""
     if isinstance(content, Content):
         content.state = "Archived"
-        content.archived = True
+        if hasattr(content, "archived"):
+            delattr(content, "archived")
     else:
         content["state"] = "Archived"
-        content["archived"] = True
+        content.pop("archived", None)
     return content
 
 
