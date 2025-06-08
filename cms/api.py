@@ -41,6 +41,25 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             item.setdefault("published_revision", item["revisions"][0]["uuid"])
             item.setdefault("draft_revision", item["revisions"][-1]["uuid"])
 
+    @staticmethod
+    def _add_revision(item):
+        """Append a new revision entry reflecting the current content."""
+        rev_uuid = str(uuid.uuid4())
+        ts = (
+            item.get("edited_at")
+            or item.get("timestamps")
+            or item.get("metadata", {}).get("edited_at")
+            or item.get("metadata", {}).get("timestamps")
+        )
+        attrs = {}
+        if "title" in item:
+            attrs["title"] = item["title"]
+        if "file" in item:
+            attrs["file"] = item["file"]
+        item.setdefault("revisions", [])
+        item["revisions"].append({"uuid": rev_uuid, "last_updated": ts, "attributes": attrs})
+        item["draft_revision"] = rev_uuid
+
     def _authenticate(self):
         auth = self.headers.get("Authorization", "")
         if not auth.startswith("Bearer "):
@@ -247,6 +266,7 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             excluded = metadata_fields | {"type", "metadata", "uuid"}
             updated.update({k: v for k, v in incoming.items() if k not in excluded})
             self._ensure_revision_structure(updated)
+            self._add_revision(updated)
             self.store[uuid] = updated
             self._send_json(updated)
         else:
