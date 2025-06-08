@@ -28,7 +28,7 @@ are included as well. The `<type>` parameter must match one of the values
 returned by `GET /content-types`.
 
 ### `POST /content`
-Create a new content item. The body must include a `type` field with one of the supported values as well as `created_by`, `created_at` and `timestamps`. Regardless of any provided value, newly created items are stored in the `Draft` state.
+Create a new content item. The body must include a `type` field with one of the supported values as well as `created_by`, `created_at` and `timestamps`. Regardless of any provided value, newly created items start unpublished.
 
 ### `GET /content/<uuid>`
 Retrieve a stored content item.

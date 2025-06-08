@@ -8,6 +8,7 @@ from .workflow import (
     start_draft,
     archive_content,
     approve_content,
+    pending_approvals,
 )
 
 
@@ -64,25 +65,31 @@ class ContentService:
     def __init__(self, ctx: DbContext):
         self.ctx = ctx
 
+    def _with_flags(self, item: Dict) -> Dict:
+        result = item.copy()
+        result["is_published"] = bool(result.get("published_revision"))
+        return result
+
     def list_all(self, authenticated: bool) -> List[Dict]:
         return [
-            item
+            self._with_flags(item)
             for item in self.ctx.contents.values()
-            if (authenticated or item.get("state") == "Published")
-            and item.get("state") != "Archived"
+            if (authenticated or bool(item.get("published_revision")))
+            and not item.get("archived")
         ]
 
     def list_by_type(self, item_type: str, authenticated: bool) -> List[Dict]:
         return [
-            i
+            self._with_flags(i)
             for i in self.ctx.contents.values()
             if i.get("type") == item_type
-            and (authenticated or i.get("state") == "Published")
-            and i.get("state") != "Archived"
+            and (authenticated or bool(i.get("published_revision")))
+            and not i.get("archived")
         ]
 
     def get(self, uuid: str) -> Dict:
-        return self.ctx.contents.get(uuid)
+        item = self.ctx.contents.get(uuid)
+        return self._with_flags(item) if item else None
 
     # Internal helpers -------------------------------------------------
     @staticmethod
@@ -118,12 +125,13 @@ class ContentService:
     def create(self, item: Dict) -> Dict:
         item_uuid = item.get("uuid") or str(uuid.uuid4())
         item["uuid"] = item_uuid
-        item["state"] = "Draft"
+        item.pop("state", None)
+        item["archived"] = False
         if item.get("type") == "pdf":
             item["pre_submission"] = True
         self._ensure_revision_structure(item)
         self.ctx.contents[item_uuid] = item
-        return item
+        return self._with_flags(item)
 
     def update(self, uuid: str, incoming: Dict) -> Dict:
         existing = self.ctx.contents.get(uuid)
@@ -153,19 +161,19 @@ class ContentService:
                     raise ValueError("metadata immutable")
 
         updated = existing.copy()
-        excluded = metadata_fields | {"type", "metadata", "uuid"}
+        excluded = metadata_fields | {"type", "metadata", "uuid", "state"}
         updated.update({k: v for k, v in incoming.items() if k not in excluded})
         self._ensure_revision_structure(updated)
         self._add_revision(updated)
         self.ctx.contents[uuid] = updated
-        return updated
+        return self._with_flags(updated)
 
     def archive(self, uuid: str) -> Dict:
         item = self.ctx.contents.get(uuid)
         if item is not None:
             archive_content(item)
             self.ctx.contents[uuid] = item
-        return item
+        return self._with_flags(item) if item else None
 
     def request_approval(self, uuid: str, data: Dict) -> Dict:
         item = self.ctx.contents.get(uuid)
@@ -174,7 +182,7 @@ class ContentService:
         self._ensure_revision_structure(item)
         request_approval(item, {"uuid": data.get("user_uuid")}, data.get("timestamp"))
         self.ctx.contents[uuid] = item
-        return item
+        return self._with_flags(item)
 
     def approve(self, uuid: str, data: Dict) -> Dict:
         item = self.ctx.contents.get(uuid)
@@ -183,7 +191,7 @@ class ContentService:
         self._ensure_revision_structure(item)
         approve_content(item, {"uuid": data.get("user_uuid")}, data.get("timestamp"))
         self.ctx.contents[uuid] = item
-        return item
+        return self._with_flags(item)
 
     def start_draft(self, uuid: str, data: Dict) -> Dict:
         item = self.ctx.contents.get(uuid)
@@ -192,10 +200,11 @@ class ContentService:
         self._ensure_revision_structure(item)
         start_draft(item, {"uuid": data.get("user_uuid")}, data.get("timestamp"))
         self.ctx.contents[uuid] = item
-        return item
+        return self._with_flags(item)
 
     def pending_approvals(self) -> List[Dict]:
-        return [item for item in self.ctx.contents.values() if item.get("state") == "AwaitingApproval"]
+        pending = pending_approvals(self.ctx.contents.values())
+        return [self._with_flags(item) for item in pending]
 
 
 class TokenService:

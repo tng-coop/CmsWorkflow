@@ -24,7 +24,7 @@ classDiagram
         revisions: Revision[]
         published_revision: str
         review_revision: str
-        state: str
+        archived: bool
         file: str
         pre_submission: bool
         categories: List[str]
@@ -55,18 +55,14 @@ classDiagram
  - **published_revision** – UUID of the currently published revision.
  - **review_revision** – UUID of the most recent review revision. Both fields
    are ``null`` when content is first created.
- - **state** – workflow state such as `Draft`, `AwaitingApproval`, `Published`, or `Archived`. Newly created items always start in the `Draft` state.
+ - **is_published** – boolean computed by the service layer. Set to `true` when
+   ``published_revision`` is assigned.
+ - **archived** – set to `true` when the content has been removed from active use.
 - **file** – base64 encoded file contents (PDF only).
 - **pre_submission** – boolean that indicates a newly created PDF has not yet been submitted for approval.
 - **categories** – list of category UUIDs the content belongs to.
 
-```mermaid
-flowchart TD
-    Draft -->|request approval| AwaitingApproval
-    AwaitingApproval -->|approve| Published
-    Draft -.->|archive| Archived
-    Published -.->|archive| Archived
-```
+
 
 The API will automatically populate revision fields and enforce type validation as demonstrated in the tests.
 
