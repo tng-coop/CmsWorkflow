@@ -28,6 +28,7 @@ classDiagram
     class Revision {
         uuid: str
         last_updated: str
+        attributes: dict
     }
     Content --> "1..*" Revision
 ```
@@ -46,7 +47,7 @@ classDiagram
 - **approved_by** – UUID of the approver.
 - **approved_at** – timestamp of approval.
 - **timestamps** – original creation timestamp (required).
-- **revisions** – list of revision objects. Each revision includes a `uuid` and `last_updated` timestamp.
+- **revisions** – list of revision objects. Every revision entry contains a `uuid`, a `last_updated` timestamp, and a dictionary of type-specific `attributes` representing the content at that revision.
 - **published_revision** – UUID of the currently published revision.
 - **draft_revision** – UUID of the most recent draft revision.
 - **state** – workflow state such as `Draft` or `AwaitingApproval`. Newly created items always start in the `Draft` state.

@@ -14,7 +14,11 @@ def sample_content(users):
     """Create example HTML content using the provided users."""
     timestamp = "2025-06-08T12:00:00"
     revision_uuid = "rev-12345"
-    revision = Revision(uuid=revision_uuid, last_updated=timestamp)
+    revision = Revision(
+        uuid=revision_uuid,
+        last_updated=timestamp,
+        attributes={"title": "Sample HTML Content"},
+    )
     return HTMLContent(
         uuid="12345",
         title="Sample HTML Content",

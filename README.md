@@ -15,7 +15,10 @@ Each content item stored by the API contains:
 
 1. A content `type` from `cms.types.ContentType`.
 2. A unique `uuid` identifying the content.
-3. A list of `revisions`, each with its own `uuid` and `last_updated` timestamp.
+3. A list of `revisions`. Each revision entry stores:
+   - a `uuid` identifying that revision,
+   - a `last_updated` timestamp,
+   - and a dictionary of type-specific `attributes`.
 4. References to the `published_revision` and `draft_revision` by UUID.
 
 The helper `cms.data.sample_content` returns an example object with this
@@ -25,7 +28,8 @@ created. A full breakdown of all fields can be found in
 
 ## Supported Content Types
 
-The API works with four distinct content types defined in `cms.types.ContentType`:
+The API works with four distinct content types defined in `cms.types.ContentType`.
+All content types share the same metadata and revision structure:
 
 1. `html`
 2. `pdf`

@@ -6,6 +6,7 @@ from .types import ContentType
 class Revision:
     uuid: str
     last_updated: str
+    attributes: dict = field(default_factory=dict)
 
 @dataclass
 class Content:
