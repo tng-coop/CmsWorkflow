@@ -5,6 +5,7 @@ from threading import Thread
 from urllib.parse import urlparse
 
 from .types import ContentType
+from .workflow import check_required_metadata, request_approval, start_draft
 
 
 class SimpleCRUDHandler(BaseHTTPRequestHandler):
@@ -35,6 +36,19 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path == "/content-types":
+            self._send_json(sorted(self.valid_types))
+            return
+        if parsed.path == "/pending-approvals":
+            if not self._authenticate():
+                self._send_json({"error": "unauthorized"}, status=401)
+                return
+            pending = [
+                item for item in self.store.values()
+                if item.get("state") == "AwaitingApproval"
+            ]
+            self._send_json(pending)
+            return
         if parsed.path.startswith("/content/"):
             if not self._authenticate():
                 self._send_json({"error": "unauthorized"}, status=401)
@@ -61,7 +75,67 @@ class SimpleCRUDHandler(BaseHTTPRequestHandler):
             self.__class__.tokens[token] = username
             self._send_json({"token": token})
             return
-        if self.path != "/content":
+        parsed = urlparse(self.path)
+        if parsed.path == "/check-metadata":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            item = json.loads(body)
+            try:
+                check_required_metadata(item)
+            except KeyError as exc:
+                self._send_json({"error": str(exc)}, status=400)
+            else:
+                self._send_json({"ok": True})
+            return
+        if parsed.path.startswith("/content/") and parsed.path.endswith("/request-approval"):
+            if not self._authenticate():
+                self._send_json({"error": "unauthorized"}, status=401)
+                return
+            parts = parsed.path.split("/")
+            uuid_part = parts[2]
+            item = self.store.get(uuid_part)
+            if item is None:
+                self._send_json({"error": "not found"}, status=404)
+                return
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            data = json.loads(body)
+            timestamp = data.get("timestamp")
+            user_uuid = data.get("user_uuid")
+            if not timestamp or not user_uuid:
+                self._send_json({"error": "invalid data"}, status=400)
+                return
+            request_approval(item, {"uuid": user_uuid}, timestamp)
+            self.store[uuid_part] = item
+            self._send_json(item)
+            return
+        if parsed.path.startswith("/content/") and parsed.path.endswith("/start-draft"):
+            if not self._authenticate():
+                self._send_json({"error": "unauthorized"}, status=401)
+                return
+            parts = parsed.path.split("/")
+            uuid_part = parts[2]
+            item = self.store.get(uuid_part)
+            if item is None:
+                self._send_json({"error": "not found"}, status=404)
+                return
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            data = json.loads(body)
+            timestamp = data.get("timestamp")
+            user_uuid = data.get("user_uuid")
+            if not timestamp or not user_uuid:
+                self._send_json({"error": "invalid data"}, status=400)
+                return
+            try:
+                start_draft(item, {"uuid": user_uuid}, timestamp)
+            except PermissionError as exc:
+                self._send_json({"error": str(exc)}, status=403)
+                return
+            self.store[uuid_part] = item
+            self._send_json(item)
+            return
+        if parsed.path != "/content":
             self._send_json({"error": "not found"}, status=404)
             return
         if not self._authenticate():

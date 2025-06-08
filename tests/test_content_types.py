@@ -9,7 +9,6 @@ import urllib.request
 
 import pytest
 
-from cms.types import ContentType
 from cms.api import start_test_server
 
 
@@ -29,9 +28,14 @@ def _request(base_url, method, path, data=None, token=None):
 
 
 def test_supported_content_types():
+    server, thread = start_test_server()
+    base_url = f"http://localhost:{server.server_port}"
+    status, body = _request(base_url, "GET", "/content-types")
+    server.shutdown()
+    thread.join()
     expected = {"html", "pdf", "office address", "event schedule"}
-    assert len(ContentType) == 4
-    assert {item.value for item in ContentType} == expected
+    assert status == 200
+    assert set(body) == expected
 
 
 def test_post_invalid_content_type(tmp_path):
