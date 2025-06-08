@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QTextEdit,
     QLabel,
     QPushButton,
+    QMenu,
 )
 from PyQt5.QtCore import Qt
 
@@ -49,6 +50,8 @@ class CmsWindow(QMainWindow):
         self.item_list = QListWidget()
         self.output = QTextEdit()
         self.output.setReadOnly(True)
+        self.output.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.output.customContextMenuRequested.connect(self._show_output_context_menu)
 
         left_layout = QVBoxLayout()
         left_layout.addWidget(QLabel("Content Types"))
@@ -78,6 +81,17 @@ class CmsWindow(QMainWindow):
         self.output.append(request_desc)
         self.output.append(json.dumps(data, indent=2))
         self.output.append("")
+
+    def _clear_output(self):
+        """Clear the API response panel."""
+        self.output.clear()
+
+    def _show_output_context_menu(self, position):
+        menu = self.output.createStandardContextMenu()
+        menu.addSeparator()
+        clear_action = menu.addAction("Clear")
+        clear_action.triggered.connect(self._clear_output)
+        menu.exec_(self.output.mapToGlobal(position))
 
     def _update_status(self):
         if self.api.username:
