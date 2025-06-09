@@ -43,7 +43,10 @@ def _sample_content(content_type, users, idx):
     elif content_type == ContentType.OFFICE_ADDRESS.value:
         content["address"] = f"{idx} Example Rd." 
     elif content_type == ContentType.EVENT_SCHEDULE.value:
-        content["event_date"] = f"2025-06-{10 + idx:02d}T09:00:00"
+        start = f"2025-06-{10 + idx:02d}T09:00:00"
+        content["start"] = start
+        content["end"] = f"2025-06-{10 + idx:02d}T17:00:00"
+        content["all_day"] = False
     else:
         content["body"] = f"<p>Example HTML {idx}</p>"
     return content

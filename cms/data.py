@@ -50,6 +50,14 @@ def seed_example_contents(users):
             if ct is ContentType.PDF:
                 # include a file UUID for seeded PDF content
                 rev_attrs["file_uuid"] = str(uuid.uuid4())
+            if ct is ContentType.EVENT_SCHEDULE:
+                rev_attrs.update(
+                    {
+                        "start": "2025-06-08T09:00:00",
+                        "end": "2025-06-08T10:00:00",
+                        "all_day": False,
+                    }
+                )
             rev = Revision(
                 uuid=str(uuid.uuid4()),
                 last_updated=timestamp,
