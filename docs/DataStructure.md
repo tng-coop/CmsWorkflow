@@ -24,9 +24,8 @@ classDiagram
         revisions: Revision[]
         published_revision: str
         review_revision: str
-        archived: bool
-        pre_submission: bool
         categories: List[str]
+        review_requested: bool
     }
     class Revision {
         uuid: str
@@ -56,9 +55,10 @@ classDiagram
    are ``null`` when content is first created.
 - **is_published** – boolean computed by the service layer. Set to `true` when
   ``published_revision`` is assigned.
-- **archived** – set to `true` when the content has been removed from active use.
-- **pre_submission** – boolean that indicates a newly created PDF has not yet been submitted for approval.
+- **review_requested** – boolean indicating approval has been requested but not yet granted.
 - **categories** – list of category UUIDs the content belongs to.
+
+Soft deleting a content item clears both ``published_revision`` and ``review_revision`` so that it no longer appears as published or under review.
 
 Each revision's ``attributes`` dictionary stores type-specific fields. For PDF content
 the ``file`` attribute contains a UUID referencing the uploaded file.
