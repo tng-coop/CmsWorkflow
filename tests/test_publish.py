@@ -39,7 +39,7 @@ def _sample_content(content_type, users, idx):
         "timestamps": ts,
     }
     if content_type == ContentType.PDF.value:
-        content["file"] = str(uuid.uuid4())
+        content["file_uuid"] = str(uuid.uuid4())
     elif content_type == ContentType.OFFICE_ADDRESS.value:
         content["address"] = f"{idx} Example Rd." 
     elif content_type == ContentType.EVENT_SCHEDULE.value:

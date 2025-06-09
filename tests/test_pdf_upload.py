@@ -56,7 +56,7 @@ def test_upload_pdf_content(api_server, auth_token, users):
     content = {
         "title": "PDF Upload",
         "type": ContentType.PDF.value,
-        "file": file_id,
+        "file_uuid": file_id,
         "created_by": users["editor"]["uuid"],
         "created_at": "2025-06-09T12:00:00",
         "edited_by": None,
@@ -71,9 +71,9 @@ def test_upload_pdf_content(api_server, auth_token, users):
     status, body = _request(api_server, "POST", "/content", content, token=auth_token)
     assert status == 201
     assert body["type"] == ContentType.PDF.value
-    assert "file" not in body
+    assert "file_uuid" not in body
     latest_rev = body["revisions"][-1]
-    assert latest_rev["attributes"]["file"] == file_id
+    assert latest_rev["attributes"]["file_uuid"] == file_id
     assert "uuid" in body and body["uuid"]
     assert body["is_published"] is False
     assert body["review_requested"] is False
