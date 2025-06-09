@@ -20,5 +20,8 @@ def test_seed_example_contents():
         uuids.add(item.uuid)
         # ensure dataclass to_dict works
         assert item.to_dict()["type"] == item.type.value
+        if item.type is ContentType.PDF:
+            for rev in item.revisions:
+                assert "file_uuid" in rev.attributes and rev.attributes["file_uuid"]
     assert all(count >= 2 for count in type_counts.values())
     assert len(uuids) == len(contents)
