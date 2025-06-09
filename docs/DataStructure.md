@@ -63,6 +63,8 @@ Soft deleting a content item clears both ``published_revision`` and ``review_rev
 Each revision's ``attributes`` dictionary stores type-specific fields. For PDF content
 the ``file_uuid`` attribute contains a UUID referencing the uploaded file. For HTML
 content the ``html_content`` attribute stores the markup string for that revision.
+For ``event schedule`` content the attributes ``start`` and ``end`` store ISO
+datetime strings while ``all_day`` is a boolean flag.
 
 
 

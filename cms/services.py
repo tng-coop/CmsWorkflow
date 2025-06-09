@@ -105,6 +105,12 @@ class ContentService:
                 attrs["file_uuid"] = item.pop("file_uuid")
             if "html_content" in item:
                 attrs["html_content"] = item.pop("html_content")
+            if "start" in item:
+                attrs["start"] = item.pop("start")
+            if "end" in item:
+                attrs["end"] = item.pop("end")
+            if "all_day" in item:
+                attrs["all_day"] = item.pop("all_day")
             item["revisions"] = [{"uuid": rev_uuid, "last_updated": ts, "attributes": attrs}]
         else:
             for rev in item["revisions"]:
@@ -136,6 +142,24 @@ class ContentService:
             last = item["revisions"][-1].get("attributes", {})
             if "html_content" in last:
                 attrs["html_content"] = last["html_content"]
+        if "start" in item:
+            attrs["start"] = item.pop("start")
+        elif item.get("type") == ContentType.EVENT_SCHEDULE.value and item.get("revisions"):
+            last = item["revisions"][-1].get("attributes", {})
+            if "start" in last:
+                attrs["start"] = last["start"]
+        if "end" in item:
+            attrs["end"] = item.pop("end")
+        elif item.get("type") == ContentType.EVENT_SCHEDULE.value and item.get("revisions"):
+            last = item["revisions"][-1].get("attributes", {})
+            if "end" in last:
+                attrs["end"] = last["end"]
+        if "all_day" in item:
+            attrs["all_day"] = item.pop("all_day")
+        elif item.get("type") == ContentType.EVENT_SCHEDULE.value and item.get("revisions"):
+            last = item["revisions"][-1].get("attributes", {})
+            if "all_day" in last:
+                attrs["all_day"] = last["all_day"]
         item.setdefault("revisions", [])
         item["revisions"].append({"uuid": rev_uuid, "last_updated": ts, "attributes": attrs})
         item["review_revision"] = rev_uuid
