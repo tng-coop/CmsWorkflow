@@ -44,10 +44,14 @@ def seed_example_contents(users):
     contents = []
     for ct in ContentType:
         for _ in range(2):
+            rev_attrs = {"title": f"Example {ct.value}"}
+            if ct is ContentType.PDF:
+                # include a file UUID for seeded PDF content
+                rev_attrs["file_uuid"] = str(uuid.uuid4())
             rev = Revision(
                 uuid=str(uuid.uuid4()),
                 last_updated=timestamp,
-                attributes={"title": f"Example {ct.value}"},
+                attributes=rev_attrs,
             )
             base_kwargs = dict(
                 uuid=str(uuid.uuid4()),
