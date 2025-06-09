@@ -50,6 +50,16 @@ def seed_example_contents(users):
             if ct is ContentType.PDF:
                 # include a file UUID for seeded PDF content
                 rev_attrs["file_uuid"] = str(uuid.uuid4())
+            if ct is ContentType.OFFICE_ADDRESS:
+                rev_attrs.update(
+                    {
+                        "postal_code": "00000",
+                        "address": "123 Example Rd.",
+                        "phone": "555-0000",
+                        "fax": "555-0001",
+                        "email": "info@example.com",
+                    }
+                )
             if ct is ContentType.EVENT_SCHEDULE:
                 rev_attrs.update(
                     {

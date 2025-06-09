@@ -105,6 +105,16 @@ class ContentService:
                 attrs["file_uuid"] = item.pop("file_uuid")
             if "html_content" in item:
                 attrs["html_content"] = item.pop("html_content")
+            if "postal_code" in item:
+                attrs["postal_code"] = item.pop("postal_code")
+            if "address" in item:
+                attrs["address"] = item.pop("address")
+            if "phone" in item:
+                attrs["phone"] = item.pop("phone")
+            if "fax" in item:
+                attrs["fax"] = item.pop("fax")
+            if "email" in item:
+                attrs["email"] = item.pop("email")
             if "start" in item:
                 attrs["start"] = item.pop("start")
             if "end" in item:
@@ -142,6 +152,36 @@ class ContentService:
             last = item["revisions"][-1].get("attributes", {})
             if "html_content" in last:
                 attrs["html_content"] = last["html_content"]
+        if "postal_code" in item:
+            attrs["postal_code"] = item.pop("postal_code")
+        elif item.get("type") == ContentType.OFFICE_ADDRESS.value and item.get("revisions"):
+            last = item["revisions"][-1].get("attributes", {})
+            if "postal_code" in last:
+                attrs["postal_code"] = last["postal_code"]
+        if "address" in item:
+            attrs["address"] = item.pop("address")
+        elif item.get("type") == ContentType.OFFICE_ADDRESS.value and item.get("revisions"):
+            last = item["revisions"][-1].get("attributes", {})
+            if "address" in last:
+                attrs["address"] = last["address"]
+        if "phone" in item:
+            attrs["phone"] = item.pop("phone")
+        elif item.get("type") == ContentType.OFFICE_ADDRESS.value and item.get("revisions"):
+            last = item["revisions"][-1].get("attributes", {})
+            if "phone" in last:
+                attrs["phone"] = last["phone"]
+        if "fax" in item:
+            attrs["fax"] = item.pop("fax")
+        elif item.get("type") == ContentType.OFFICE_ADDRESS.value and item.get("revisions"):
+            last = item["revisions"][-1].get("attributes", {})
+            if "fax" in last:
+                attrs["fax"] = last["fax"]
+        if "email" in item:
+            attrs["email"] = item.pop("email")
+        elif item.get("type") == ContentType.OFFICE_ADDRESS.value and item.get("revisions"):
+            last = item["revisions"][-1].get("attributes", {})
+            if "email" in last:
+                attrs["email"] = last["email"]
         if "start" in item:
             attrs["start"] = item.pop("start")
         elif item.get("type") == ContentType.EVENT_SCHEDULE.value and item.get("revisions"):
