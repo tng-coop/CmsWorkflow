@@ -61,7 +61,8 @@ classDiagram
 Soft deleting a content item clears both ``published_revision`` and ``review_revision`` so that it no longer appears as published or under review.
 
 Each revision's ``attributes`` dictionary stores type-specific fields. For PDF content
-the ``file_uuid`` attribute contains a UUID referencing the uploaded file.
+the ``file_uuid`` attribute contains a UUID referencing the uploaded file. For HTML
+content the ``html_content`` attribute stores the markup string for that revision.
 
 
 

@@ -25,7 +25,7 @@ def sample_content(users):
     revision = Revision(
         uuid=revision_uuid,
         last_updated=timestamp,
-        attributes={"title": "Sample HTML Content"},
+        attributes={"title": "Sample HTML Content", "html_content": "<p>Sample HTML Content</p>"},
     )
     return HTMLContent(
         uuid=str(uuid.uuid4()),
@@ -45,6 +45,8 @@ def seed_example_contents(users):
     for ct in ContentType:
         for _ in range(2):
             rev_attrs = {"title": f"Example {ct.value}"}
+            if ct is ContentType.HTML:
+                rev_attrs["html_content"] = f"<p>Example {ct.value}</p>"
             if ct is ContentType.PDF:
                 # include a file UUID for seeded PDF content
                 rev_attrs["file_uuid"] = str(uuid.uuid4())

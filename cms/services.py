@@ -103,6 +103,8 @@ class ContentService:
                 attrs["title"] = item["title"]
             if "file_uuid" in item:
                 attrs["file_uuid"] = item.pop("file_uuid")
+            if "html_content" in item:
+                attrs["html_content"] = item.pop("html_content")
             item["revisions"] = [{"uuid": rev_uuid, "last_updated": ts, "attributes": attrs}]
         else:
             for rev in item["revisions"]:
@@ -128,6 +130,12 @@ class ContentService:
             last = item["revisions"][-1].get("attributes", {})
             if "file_uuid" in last:
                 attrs["file_uuid"] = last["file_uuid"]
+        if "html_content" in item:
+            attrs["html_content"] = item.pop("html_content")
+        elif item.get("type") == ContentType.HTML.value and item.get("revisions"):
+            last = item["revisions"][-1].get("attributes", {})
+            if "html_content" in last:
+                attrs["html_content"] = last["html_content"]
         item.setdefault("revisions", [])
         item["revisions"].append({"uuid": rev_uuid, "last_updated": ts, "attributes": attrs})
         item["review_revision"] = rev_uuid
