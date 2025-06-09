@@ -68,14 +68,14 @@ class ContentService:
     def _with_flags(self, item: Dict) -> Dict:
         result = item.copy()
         result["is_published"] = bool(result.get("published_revision"))
+        result["review_requested"] = bool(result.get("draft_requested_by")) and not bool(result.get("approved_at"))
         return result
 
     def list_all(self, authenticated: bool) -> List[Dict]:
         return [
             self._with_flags(item)
             for item in self.ctx.contents.values()
-            if (authenticated or bool(item.get("published_revision")))
-            and not item.get("archived")
+            if authenticated or bool(item.get("published_revision"))
         ]
 
     def list_by_type(self, item_type: str, authenticated: bool) -> List[Dict]:
@@ -84,7 +84,6 @@ class ContentService:
             for i in self.ctx.contents.values()
             if i.get("type") == item_type
             and (authenticated or bool(i.get("published_revision")))
-            and not i.get("archived")
         ]
 
     def get(self, uuid: str) -> Dict:
@@ -131,9 +130,6 @@ class ContentService:
         item_uuid = item.get("uuid") or str(uuid.uuid4())
         item["uuid"] = item_uuid
         item.pop("state", None)
-        item["archived"] = False
-        if item.get("type") == "pdf":
-            item["pre_submission"] = True
         self._ensure_revision_structure(item)
         self.ctx.contents[item_uuid] = item
         return self._with_flags(item)

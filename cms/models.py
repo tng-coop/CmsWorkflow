@@ -33,13 +33,17 @@ class Content:
     revisions: List[Revision] = field(default_factory=list)
     published_revision: Optional[str] = None
     review_revision: Optional[str] = None
-    archived: bool = False
-    pre_submission: Optional[bool] = None
     categories: List[str] = field(default_factory=list)
+
+    @property
+    def review_requested(self) -> bool:
+        """Return True when approval has been requested but not yet granted."""
+        return self.draft_requested_by is not None and self.approved_at is None
 
     def to_dict(self):
         data = asdict(self)
         data["type"] = self.type.value
+        data["review_requested"] = self.review_requested
         return data
 
 @dataclass

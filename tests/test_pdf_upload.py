@@ -76,7 +76,6 @@ def test_upload_pdf_content(api_server, auth_token, users):
     assert latest_rev["attributes"]["file"] == file_id
     assert "uuid" in body and body["uuid"]
     assert body["is_published"] is False
-    assert body["archived"] is False
-    assert body["pre_submission"] is True
+    assert body["review_requested"] is False
     assert body.get("published_revision") is None
     assert body.get("review_revision") is None

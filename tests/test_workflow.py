@@ -79,7 +79,7 @@ def test_request_approval_adds_to_pending(api_server, content_html, users, auth_
     assert status == 200
     assert body["draft_requested_by"] == users["editor"]["uuid"]
     assert body["is_published"] is False
-    assert body["archived"] is False
+    assert body["review_requested"] is True
 
     status, body = _request(api_server, "GET", "/pending-approvals", token=auth_token)
     assert status == 200
@@ -98,7 +98,7 @@ def test_content_created_without_state_starts_in_draft(api_server, users, auth_t
     status, body = _request(api_server, "POST", "/content", content, token=auth_token)
     assert status == 201
     assert body["is_published"] is False
-    assert body["archived"] is False
+    assert body["review_requested"] is False
     assert body.get("published_revision") is None
     assert body.get("review_revision") is None
 
@@ -108,7 +108,7 @@ def test_content_state_overridden_to_draft(api_server, content_html, auth_token)
     status, body = _request(api_server, "POST", "/content", content_html, token=auth_token)
     assert status == 201
     assert body["is_published"] is False
-    assert body["archived"] is False
+    assert body["review_requested"] is False
     assert body.get("published_revision") is None
     assert body.get("review_revision") is None
 
@@ -174,9 +174,9 @@ def test_crud_flow(api_server, content_html, auth_token):
     # ARCHIVE
     status, body = _request(api_server, "DELETE", f"/content/{updated['uuid']}", token=auth_token)
     assert status == 200
-    assert body["archived"] is True
+    assert body.get("published_revision") is None and body.get("review_revision") is None
 
     # Confirm archived item is still retrievable
     status, body = _request(api_server, "GET", f"/content/{updated['uuid']}", token=auth_token)
     assert status == 200
-    assert body["archived"] is True
+    assert body.get("published_revision") is None and body.get("review_revision") is None

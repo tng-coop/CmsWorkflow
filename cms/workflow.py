@@ -40,12 +40,10 @@ def pending_approvals(contents):
         if isinstance(item, Content):
             req = item.draft_requested_by is not None
             approved = item.approved_at is not None
-            archived = getattr(item, "archived", False)
         else:
             req = item.get("draft_requested_by") is not None or item.get("metadata", {}).get("draft_requested_by") is not None
             approved = item.get("approved_at") is not None or item.get("metadata", {}).get("approved_at") is not None
-            archived = item.get("archived", False)
-        if req and not approved and not archived:
+        if req and not approved:
             result.append(item)
     return result
 
@@ -78,11 +76,13 @@ def start_draft(content, user, timestamp):
 
 
 def archive_content(content):
-    """Mark a content item as archived."""
+    """Soft-delete a content item by clearing revision pointers."""
     if isinstance(content, Content):
-        content.archived = True
+        content.published_revision = None
+        content.review_revision = None
     else:
-        content["archived"] = True
+        content["published_revision"] = None
+        content["review_revision"] = None
     return content
 
 
@@ -95,7 +95,6 @@ def approve_content(content, user, timestamp):
             content.published_revision = content.review_revision
         elif content.revisions:
             content.published_revision = content.revisions[-1].uuid
-        content.pre_submission = False
     else:
         if "approved_by" in content or "metadata" not in content:
             content["approved_by"] = user["uuid"]
@@ -108,5 +107,4 @@ def approve_content(content, user, timestamp):
             content["published_revision"] = content.get("review_revision")
         elif content.get("revisions"):
             content["published_revision"] = content["revisions"][-1]["uuid"]
-        content["pre_submission"] = False
     return content
