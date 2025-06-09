@@ -1,6 +1,8 @@
 import uuid
 from typing import Dict, List
 
+from .types import ContentType
+
 from .db_context import DbContext
 from .workflow import (
     check_required_metadata,
@@ -122,6 +124,10 @@ class ContentService:
             attrs["title"] = item["title"]
         if "file_uuid" in item:
             attrs["file_uuid"] = item.pop("file_uuid")
+        elif item.get("type") == ContentType.PDF.value and item.get("revisions"):
+            last = item["revisions"][-1].get("attributes", {})
+            if "file_uuid" in last:
+                attrs["file_uuid"] = last["file_uuid"]
         item.setdefault("revisions", [])
         item["revisions"].append({"uuid": rev_uuid, "last_updated": ts, "attributes": attrs})
         item["review_revision"] = rev_uuid
