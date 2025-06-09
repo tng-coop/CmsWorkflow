@@ -41,7 +41,15 @@ def _sample_content(content_type, users, idx):
     if content_type == ContentType.PDF.value:
         content["file_uuid"] = str(uuid.uuid4())
     elif content_type == ContentType.OFFICE_ADDRESS.value:
-        content["address"] = f"{idx} Example Rd." 
+        content.update(
+            {
+                "postal_code": f"000{idx}",
+                "address": f"{idx} Example Rd.",
+                "phone": "555-0000",
+                "fax": "555-0001",
+                "email": f"office{idx}@example.com",
+            }
+        )
     elif content_type == ContentType.EVENT_SCHEDULE.value:
         start = f"2025-06-{10 + idx:02d}T09:00:00"
         content["start"] = start
